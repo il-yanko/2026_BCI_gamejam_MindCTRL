@@ -269,6 +269,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be4a2b0f3ecbcedf78f5a9d3306fe8cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayPauseHelper
+  particleSystems:
+  - {fileID: 671531074}
+  - {fileID: 1937479501}
+  - {fileID: 1727484208}
   sounds:
   - {fileID: 1850430601}
   - {fileID: 953766370}
@@ -499,6 +503,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!198 &671531074 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 7571510577900392574, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+  m_PrefabInstance: {fileID: 8618189527454889384}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &890119720
 GameObject:
   m_ObjectHideFlags: 0
@@ -934,6 +943,11 @@ AudioSource:
   m_CorrespondingSourceObject: {fileID: 1630710128227414953, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
   m_PrefabInstance: {fileID: 1637756858}
   m_PrefabAsset: {fileID: 0}
+--- !u!198 &1727484208 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 7571510577900392574, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+  m_PrefabInstance: {fileID: 1637756858}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1729158210
 GameObject:
   m_ObjectHideFlags: 0
@@ -1017,6 +1031,11 @@ Transform:
 AudioSource:
   m_CorrespondingSourceObject: {fileID: 1630710128227414953, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
   m_PrefabInstance: {fileID: 8618189527454889384}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &1937479501 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 7571510577900392574, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+  m_PrefabInstance: {fileID: 953766368}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8618189527454889384
 PrefabInstance:

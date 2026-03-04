@@ -7,6 +7,7 @@ public class BarAdjust : MonoBehaviour
     [SerializeField] private GameObject bar;
     [SerializeField] private GameObject face;
     [SerializeField] private AudioSource sound;
+    [SerializeField] private ParticleSystem particles;
     public Sprite faceExpression;
     public float height;
     public float pitch = 1;
@@ -22,9 +23,11 @@ public class BarAdjust : MonoBehaviour
         float bottomY = position.y - scale.y / 2;
         float newY = position.y + height / 2;
         barTransform.transform.localScale = new Vector3(scale.x, height, scale.y);
-        face.transform.position = new Vector3(position.x, bar.transform.GetChild(0).position.y, position.z);
+        particles.transform.position = face.transform.position = new Vector3(position.x, bar.transform.GetChild(0).position.y, position.z);
 
         face.GetComponent<Image>().overrideSprite = faceExpression;
+
+        particles.Play();
 
         sound.pitch = pitch;
         if (!(sound.isPlaying && sound.loop))
@@ -34,5 +37,7 @@ public class BarAdjust : MonoBehaviour
         yield return new WaitUntil(() => sound.isPlaying == false);
 
         face.GetComponent<Image>().overrideSprite = null;
+
+        particles.Stop();
     }
 }

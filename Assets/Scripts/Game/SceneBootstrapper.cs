@@ -38,14 +38,8 @@ public class SceneBootstrapper : MonoBehaviour
     // Pitch level display names — shown on the blob face and on the buttons
     static readonly string[] PitchNames = { "Calm", "Happy", "Excited", "Yelling!" };
 
-    // Per-pitch tint for the inactive button colour (active always uses PitchButtonPresenter.ActiveColor)
-    static readonly Color[] PitchNormalColors =
-    {
-        new Color(0.20f, 0.30f, 0.50f),  // Calm  – cool blue
-        new Color(0.28f, 0.50f, 0.28f),  // Happy – muted green
-        new Color(0.55f, 0.38f, 0.10f),  // Excited – amber
-        new Color(0.55f, 0.15f, 0.15f),  // Yelling – deep red
-    };
+    // ASCII face expressions for the 4 small note-head buttons (index 0=Calm → 3=Yelling)
+    static readonly string[] FaceTexts = { "- -\n ~", "^ ^\n u", "o o\n D", "O O\n !" };
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
@@ -200,7 +194,7 @@ public class SceneBootstrapper : MonoBehaviour
         var rle = rowGO.AddComponent<LayoutElement>();
         rle.flexibleWidth  = 1;
         rle.flexibleHeight = 1;
-        rle.minHeight      = 560;
+        rle.minHeight      = 400;
 
         blobs        = new CharacterBlobPresenter[4];
         pitchButtons = new PitchButtonPresenter[16];
@@ -316,23 +310,44 @@ public class SceneBootstrapper : MonoBehaviour
         Transform parent, int charIdx,
         out PitchButtonPresenter[] pitchBtns)
     {
+        var color = BlobColors[charIdx];
+
         // Card background
         var col = MakePanel(parent, $"Blob_{CharNames[charIdx]}", new Color(1, 1, 1, 0.06f));
-
-        var vl = col.AddComponent<VerticalLayoutGroup>();
+        var vl  = col.AddComponent<VerticalLayoutGroup>();
         vl.childAlignment       = TextAnchor.UpperCenter;
-        vl.spacing              = 7;
-        vl.padding              = new RectOffset(10, 10, 14, 14);
-        vl.childForceExpandWidth  = false;
+        vl.spacing              = 6;
+        vl.padding              = new RectOffset(8, 8, 10, 10);
+        vl.childForceExpandWidth  = true;
         vl.childForceExpandHeight = false;
         col.AddComponent<LayoutElement>().flexibleWidth = 1;
 
-        // ── Blob visual area ───────────────────────────────────────────────────
-        // blobBox is sized by the layout; the CharacterBlobPresenter lives one
-        // level deeper so the layout never fights the sway animation.
+        // Character name
+        MakeText(col.transform, "Name", CharNames[charIdx].ToUpper(),
+            20, color, TextAnchor.MiddleCenter, FontStyle.Bold,
+            prefH: 26, flexW: true);
+
+        // ── Main area: big blob (left) + note-head stack (right) ──────────────
+        var mainArea = new GameObject("MainArea");
+        mainArea.transform.SetParent(col.transform, false);
+        var hl = mainArea.AddComponent<HorizontalLayoutGroup>();
+        hl.childAlignment       = TextAnchor.MiddleCenter;
+        hl.spacing              = 6;
+        hl.childForceExpandWidth  = false;
+        hl.childForceExpandHeight = true;
+        var mainLe = mainArea.AddComponent<LayoutElement>();
+        mainLe.flexibleWidth  = 1;
+        mainLe.flexibleHeight = 1;
+        mainLe.minHeight      = 300;
+
+        // Big blob ─────────────────────────────────────────────────────────────
+        // blobBox is controlled by the layout; BlobPresenter lives one level
+        // below so the sway animation never fights the layout system.
         var blobBox = new GameObject("BlobBox");
-        blobBox.transform.SetParent(col.transform, false);
-        blobBox.AddComponent<LayoutElement>().preferredHeight = 180;
+        blobBox.transform.SetParent(mainArea.transform, false);
+        var bble = blobBox.AddComponent<LayoutElement>();
+        bble.flexibleWidth  = 1;
+        bble.flexibleHeight = 1;
 
         var blobGO = new GameObject("BlobPresenter");
         blobGO.transform.SetParent(blobBox.transform, false);
@@ -342,22 +357,20 @@ public class SceneBootstrapper : MonoBehaviour
         brt.offsetMin = Vector2.zero;
         brt.offsetMax = Vector2.zero;
 
-        // Coloured circle (80 % of the box so there's room to sway without clipping)
         var circleGO  = new GameObject("Circle");
         circleGO.transform.SetParent(blobGO.transform, false);
         var circleImg = circleGO.AddComponent<Image>();
-        circleImg.color = BlobColors[charIdx];
+        circleImg.color = color;
         var crt = circleGO.GetComponent<RectTransform>();
         crt.anchorMin = new Vector2(0.10f, 0.10f);
         crt.anchorMax = new Vector2(0.90f, 0.90f);
         crt.offsetMin = Vector2.zero;
         crt.offsetMax = Vector2.zero;
 
-        // Face label (current pitch name — large, centred over the circle)
         var faceGO  = new GameObject("FaceLabel");
         faceGO.transform.SetParent(blobGO.transform, false);
         var faceTxt = faceGO.AddComponent<Text>();
-        faceTxt.text      = PitchNames[1].ToUpper(); // "HAPPY" at start
+        faceTxt.text      = PitchNames[1].ToUpper();  // "HAPPY" at start
         faceTxt.fontSize  = 28;
         faceTxt.fontStyle = FontStyle.Bold;
         faceTxt.alignment = TextAnchor.MiddleCenter;
@@ -368,76 +381,74 @@ public class SceneBootstrapper : MonoBehaviour
         frt.offsetMin = Vector2.zero;
         frt.offsetMax = Vector2.zero;
 
-        // CharacterBlobPresenter on blobGO (one level below layout)
         var blob = blobGO.AddComponent<CharacterBlobPresenter>();
         blob.CharacterIndex = charIdx;
         blob.CharacterName  = CharNames[charIdx];
-        blob.BlobColor      = BlobColors[charIdx];
+        blob.BlobColor      = color;
         blob.BlobImage      = circleImg;
         blob.FaceLabel      = faceTxt;
-        blob.SwayAmount     = 14f;  // pixels — visible at UI scale
+        blob.SwayAmount     = 14f;
         blob.BobAmount      = 7f;
 
-        // ── Character name ─────────────────────────────────────────────────────
-        MakeText(col.transform, "Name", CharNames[charIdx].ToUpper(),
-            22, BlobColors[charIdx], TextAnchor.MiddleCenter, FontStyle.Bold,
-            prefW: 180, prefH: 30);
+        // Note-head stack (4 small blob heads, Yelling at top / Calm at bottom) ─
+        var noteStack = new GameObject("NoteStack");
+        noteStack.transform.SetParent(mainArea.transform, false);
+        var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
+        nsVl.childAlignment       = TextAnchor.MiddleCenter;
+        nsVl.spacing              = 4;
+        nsVl.childForceExpandWidth  = true;
+        nsVl.childForceExpandHeight = false;
+        noteStack.AddComponent<LayoutElement>().preferredWidth = 72;
 
-        // Divider label
-        MakeText(col.transform, "PitchLbl", "-- PITCH --",
-            14, new Color(0.50f, 0.50f, 0.62f), TextAnchor.MiddleCenter,
-            prefW: 180, prefH: 20);
-
-        // ── Pitch buttons (Yelling at top, Calm at bottom) ─────────────────────
         pitchBtns = new PitchButtonPresenter[4];
         for (int p = 3; p >= 0; p--)
-            pitchBtns[p] = BuildPitchButton(col.transform, charIdx, p);
+            pitchBtns[p] = BuildNoteHead(noteStack.transform, charIdx, p);
 
         return blob;
     }
 
-    // ── Pitch button ──────────────────────────────────────────────────────────
+    // ── Note-head button (small blob face, pitch selector) ────────────────────
 
-    PitchButtonPresenter BuildPitchButton(Transform parent, int charIdx, int pitchIdx)
+    PitchButtonPresenter BuildNoteHead(Transform parent, int charIdx, int pitchIdx)
     {
-        var go = new GameObject($"Pitch_{pitchIdx}");
+        var blobColor = BlobColors[charIdx];
+
+        var go  = new GameObject($"NoteHead_{pitchIdx}");
         go.transform.SetParent(parent, false);
 
         var img = go.AddComponent<Image>();
+        var le  = go.AddComponent<LayoutElement>();
+        le.preferredWidth  = 68;
+        le.flexibleHeight  = 1;
+        le.minHeight       = 56;
 
-        var le = go.AddComponent<LayoutElement>();
-        le.preferredWidth  = 170;
-        le.preferredHeight = 48;
+        // Two-line ASCII face expression (eyes / mouth)
+        var faceGO  = new GameObject("Face");
+        faceGO.transform.SetParent(go.transform, false);
+        var faceTxt = faceGO.AddComponent<Text>();
+        faceTxt.text      = FaceTexts[pitchIdx];
+        faceTxt.fontSize  = 13;
+        faceTxt.alignment = TextAnchor.MiddleCenter;
+        faceTxt.color     = Color.white;
+        var frt = faceGO.GetComponent<RectTransform>();
+        frt.anchorMin = Vector2.zero;
+        frt.anchorMax = Vector2.one;
+        frt.offsetMin = Vector2.zero;
+        frt.offsetMax = Vector2.zero;
 
-        // Text label inside the button
-        var lblGO = new GameObject("Lbl");
-        lblGO.transform.SetParent(go.transform, false);
-        var lbl = lblGO.AddComponent<Text>();
-        lbl.text      = PitchNames[pitchIdx];
-        lbl.fontSize  = 20;
-        lbl.alignment = TextAnchor.MiddleCenter;
-        lbl.color     = Color.white;
-        var lrt = lblGO.GetComponent<RectTransform>();
-        lrt.anchorMin = Vector2.zero;
-        lrt.anchorMax = Vector2.one;
-        lrt.offsetMin = new Vector2(4, 4);
-        lrt.offsetMax = new Vector2(-4, -4);
-
-        // PitchButtonPresenter manages colour state (Normal / Active / Flash)
+        // Dim blob colour when not active; full blob colour when active
         var presenter = go.AddComponent<PitchButtonPresenter>();
         presenter.CharacterIndex = charIdx;
         presenter.PitchIndex     = pitchIdx;
         presenter.ButtonImage    = img;
-        presenter.NormalColor    = PitchNormalColors[pitchIdx];
-        // ActiveColor / FlashColor / TargetColor use PitchButtonPresenter defaults
+        presenter.NormalColor    = new Color(blobColor.r * 0.35f, blobColor.g * 0.35f, blobColor.b * 0.35f);
+        presenter.ActiveColor    = new Color(blobColor.r,          blobColor.g,          blobColor.b);
 
-        // Unity Button for mouse / touch input
         var btn = go.AddComponent<Button>();
         btn.targetGraphic = img;
         btn.navigation    = new Navigation { mode = Navigation.Mode.None };
-
         var cols = btn.colors;
-        cols.normalColor      = Color.white;          // tint multiplied onto img.color
+        cols.normalColor      = Color.white;
         cols.highlightedColor = new Color(1.2f, 1.2f, 1.2f);
         cols.pressedColor     = new Color(0.75f, 0.75f, 0.75f);
         btn.colors = cols;

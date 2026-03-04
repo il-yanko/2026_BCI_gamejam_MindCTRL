@@ -41,7 +41,8 @@ public class CharacterBlobPresenter : MonoBehaviour
     public float NoteInterval = 0.55f;  // average seconds between spawned notes
 
     // ── Runtime state ─────────────────────────────────────────────────────────
-    public int CurrentPitchIndex { get; private set; } = 1;  // start at neutral (level 2)
+    public int  CurrentPitchIndex { get; private set; } = 1;  // start at neutral (level 2)
+    public bool IsSinging         => _isSinging;
     private bool      _isSinging;
     private Coroutine _singRoutine;
     private Coroutine _noteRoutine;
@@ -91,6 +92,7 @@ public class CharacterBlobPresenter : MonoBehaviour
         if (clip == null) return;
 
         AudioSrc.volume = GameConfig.Instance.masterVolume;
+        if (AudioSrc.isPlaying && AudioSrc.clip == clip) return;  // already on this note
         AudioSrc.clip   = clip;
         AudioSrc.loop   = true;
         AudioSrc.Play();

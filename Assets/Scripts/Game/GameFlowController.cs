@@ -114,7 +114,12 @@ public class GameFlowController : MonoBehaviour
         if (pitchIndex < 0 || pitchIndex >= 4) return;
 
         _currentPitch[charIndex] = pitchIndex;
-        Blobs[charIndex]?.SetCurrentPitch(pitchIndex);
+        var blob = Blobs[charIndex];
+        blob?.SetCurrentPitch(pitchIndex);
+        // If the blob isn't already singing, clicking its pitch head starts it.
+        // If it is singing (global play active), SetCurrentPitch already switched the note.
+        if (blob != null && !blob.IsSinging)
+            blob.PlayVoice();
         RefreshButtonsForCharacter(charIndex);
     }
 

@@ -10,7 +10,7 @@ public class MainMenu : MonoBehaviour
 
     public void Settings()
     {
-        print("Unimplemented");
+        SceneManager.LoadScene("SettingsMenu");
     }
 
     public void Quit()

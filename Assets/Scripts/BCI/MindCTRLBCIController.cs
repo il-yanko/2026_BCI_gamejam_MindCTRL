@@ -40,7 +40,7 @@ public class MindCTRLBCIController : MonoBehaviour
         _markerWriter        = GetOrAdd<MarkerWriter>();
         _responseProvider    = GetOrAdd<ResponseProvider>();
         _trial               = GetOrAdd<SingleFlashTrialBehaviour>();
-        _presenterCollection = GetOrAdd<StimulusPresenterCollection>();
+        _presenterCollection = GetOrAdd<RuntimePresenterCollection>();
 
         _trial.FlashesPerOption    = FlashesPerOption;
         _trial.OnTime              = OnTime;

@@ -24,13 +24,18 @@ public class CharacterBlobPresenter : MonoBehaviour
     public Sprite[]  FaceSprites = new Sprite[4];  // 0=Calm 1=Happy 2=Excited 3=Yelling
     public string[]  FaceNames   = { "Calm", "Happy", "Excited", "Yelling" };
 
-    [Header("Face Label (text fallback — used when no FaceSprites are assigned)")]
-    public Text FaceLabel;
+    [Header("Face Label")]
+    public Text     FaceLabel;
+    /// <summary>ASCII face expressions shown on the big blob — should match the note-head buttons.</summary>
+    public string[] FaceExpressions = { "- -\n ~", "^ ^\n u", "o o\n D", "O O\n !" };
 
     [Header("Audio")]
     public AudioSource AudioSrc;
     /// <summary>One clip per pitch level (4 total).</summary>
     public AudioClip[] VoiceClips = new AudioClip[4];
+
+    [Header("Pitch Height")]
+    public float PitchHeightStep = 25f;  // px the blob rises per pitch level
 
     [Header("Singing Animation")]
     public float SwaySpeed  = 2.5f;
@@ -46,7 +51,9 @@ public class CharacterBlobPresenter : MonoBehaviour
     private bool      _isSinging;
     private Coroutine _singRoutine;
     private Coroutine _noteRoutine;
-    private Vector3   _restLocalPos;
+    private Coroutine _moveRoutine;
+    private Vector3   _baseLocalPos;   // spawn position, unaffected by pitch
+    private Vector3   _restLocalPos;   // base + pitch height offset
 
     static readonly string[] NoteGlyphs = { "♩", "♪", "♫", "♬" };
 
@@ -57,7 +64,8 @@ public class CharacterBlobPresenter : MonoBehaviour
         if (AudioSrc == null)
             AudioSrc = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
 
-        _restLocalPos = transform.localPosition;
+        _baseLocalPos = transform.localPosition;
+        _restLocalPos = _baseLocalPos;
 
         if (BlobImage != null) BlobImage.color = BlobColor;
 
@@ -73,6 +81,7 @@ public class CharacterBlobPresenter : MonoBehaviour
         CurrentPitchIndex = Mathf.Clamp(pitchIndex, 0, 3);
         ApplyFaceSprite(CurrentPitchIndex);
         ApplyFaceText(CurrentPitchIndex);
+        UpdateRestPos();
         if (_isSinging) SwitchVoice();
     }
 
@@ -134,7 +143,35 @@ public class CharacterBlobPresenter : MonoBehaviour
     private void StopSingAnim()
     {
         if (_singRoutine != null) { StopCoroutine(_singRoutine); _singRoutine = null; }
+        if (_moveRoutine != null) { StopCoroutine(_moveRoutine); _moveRoutine = null; }
         transform.localPosition = _restLocalPos;
+    }
+
+    // ── Pitch height ──────────────────────────────────────────────────────────
+
+    private void UpdateRestPos()
+    {
+        // Higher pitch → higher on screen. Centre the range around 0.
+        float yOff    = (CurrentPitchIndex - 1.5f) * PitchHeightStep;
+        _restLocalPos = _baseLocalPos + new Vector3(0f, yOff, 0f);
+
+        if (_isSinging) return;  // SingAnimation reads _restLocalPos each frame — handled
+
+        // Smoothly drift to new height when not singing
+        if (_moveRoutine != null) StopCoroutine(_moveRoutine);
+        _moveRoutine = StartCoroutine(MoveToRest());
+    }
+
+    private IEnumerator MoveToRest()
+    {
+        while ((_restLocalPos - transform.localPosition).sqrMagnitude > 0.25f)
+        {
+            transform.localPosition = Vector3.Lerp(
+                transform.localPosition, _restLocalPos, Time.deltaTime * 8f);
+            yield return null;
+        }
+        transform.localPosition = _restLocalPos;
+        _moveRoutine = null;
     }
 
     // ── Music notes ───────────────────────────────────────────────────────────
@@ -209,8 +246,8 @@ public class CharacterBlobPresenter : MonoBehaviour
 
     private void ApplyFaceText(int index)
     {
-        if (FaceLabel == null || FaceNames == null || index >= FaceNames.Length) return;
-        FaceLabel.text = FaceNames[index].ToUpper();
+        if (FaceLabel == null || FaceExpressions == null || index >= FaceExpressions.Length) return;
+        FaceLabel.text = FaceExpressions[index];
     }
 
     private void SwitchVoice()

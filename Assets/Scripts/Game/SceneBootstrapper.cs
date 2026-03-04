@@ -370,8 +370,8 @@ public class SceneBootstrapper : MonoBehaviour
         var faceGO  = new GameObject("FaceLabel");
         faceGO.transform.SetParent(blobGO.transform, false);
         var faceTxt = faceGO.AddComponent<Text>();
-        faceTxt.text      = PitchNames[1].ToUpper();  // "HAPPY" at start
-        faceTxt.fontSize  = 28;
+        faceTxt.text      = FaceTexts[1];  // "^ ^\n u" at start (Happy)
+        faceTxt.fontSize  = 32;
         faceTxt.fontStyle = FontStyle.Bold;
         faceTxt.alignment = TextAnchor.MiddleCenter;
         faceTxt.color     = new Color(1f, 1f, 1f, 0.90f);
@@ -387,8 +387,9 @@ public class SceneBootstrapper : MonoBehaviour
         blob.BlobColor      = color;
         blob.BlobImage      = circleImg;
         blob.FaceLabel      = faceTxt;
-        blob.SwayAmount     = 14f;
-        blob.BobAmount      = 7f;
+        blob.SwayAmount      = 14f;
+        blob.BobAmount       = 7f;
+        blob.FaceExpressions = FaceTexts;
 
         // Note-head stack (4 small blob heads, Yelling at top / Calm at bottom) ─
         var noteStack = new GameObject("NoteStack");

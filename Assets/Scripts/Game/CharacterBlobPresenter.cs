@@ -210,6 +210,7 @@ public class CharacterBlobPresenter : MonoBehaviour
         noteGO.transform.SetAsLastSibling();  // render on top of the blob
 
         var txt       = noteGO.AddComponent<Text>();
+        txt.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         txt.text      = NoteGlyphs[Random.Range(0, NoteGlyphs.Length)];
         txt.fontSize  = Random.Range(24, 42);
         txt.alignment = TextAnchor.MiddleCenter;

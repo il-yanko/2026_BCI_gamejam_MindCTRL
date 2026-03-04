@@ -363,6 +363,7 @@ public class SceneBootstrapper : MonoBehaviour
         var faceGO  = new GameObject("FaceLabel");
         faceGO.transform.SetParent(blobGO.transform, false);
         var faceTxt = faceGO.AddComponent<Text>();
+        faceTxt.font      = DefaultFont;
         faceTxt.text      = FaceTexts[1];  // "^ ^\n u" at start (Happy)
         faceTxt.fontSize  = 32;
         faceTxt.fontStyle = FontStyle.Bold;
@@ -419,6 +420,7 @@ public class SceneBootstrapper : MonoBehaviour
         var faceGO  = new GameObject("Face");
         faceGO.transform.SetParent(go.transform, false);
         var faceTxt = faceGO.AddComponent<Text>();
+        faceTxt.font      = DefaultFont;
         faceTxt.text      = FaceTexts[pitchIdx];
         faceTxt.fontSize  = 13;
         faceTxt.alignment = TextAnchor.MiddleCenter;
@@ -471,6 +473,11 @@ public class SceneBootstrapper : MonoBehaviour
         rt.offsetMax = Vector2.zero;
     }
 
+    // Unity 6 no longer assigns a default font when Text is created via code.
+    static Font _font;
+    static Font DefaultFont => _font != null ? _font
+        : (_font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+
     static GameObject MakeText(Transform parent, string name, string text,
         int size, Color color, TextAnchor align, FontStyle style = FontStyle.Normal,
         float prefW = -1, float prefH = -1, bool flexW = false)
@@ -479,6 +486,7 @@ public class SceneBootstrapper : MonoBehaviour
         go.transform.SetParent(parent, false);
 
         var t = go.AddComponent<Text>();
+        t.font      = DefaultFont;
         t.text      = text;
         t.fontSize  = size;
         t.color     = color;
@@ -513,6 +521,7 @@ public class SceneBootstrapper : MonoBehaviour
         var lblGO = new GameObject("Lbl");
         lblGO.transform.SetParent(go.transform, false);
         var lbl = lblGO.AddComponent<Text>();
+        lbl.font      = DefaultFont;
         lbl.text      = label;
         lbl.fontSize  = fontSize;
         lbl.fontStyle = style;

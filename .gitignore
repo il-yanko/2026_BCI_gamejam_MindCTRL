@@ -2,8 +2,11 @@ __pycache__/
 testing
 .vscode
 
+<<<<<<< HEAD
 /Assets/TextMesh Pro
 
+=======
+>>>>>>> d2fdc1fd769b134c236363475530b94524432ee5
 # Unity
 
 # This .gitignore file should be placed at the root of your Unity project directory

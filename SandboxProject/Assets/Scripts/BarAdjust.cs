@@ -2,43 +2,36 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-[RequireComponent(typeof(AudioSource))]
 public class BarAdjust : MonoBehaviour
 {
-    public GameObject bar;
-    public GameObject face;
+    [SerializeField] private GameObject bar;
+    [SerializeField] private GameObject face;
+    [SerializeField] private AudioSource sound;
     public Sprite faceExpression;
     public float height;
-
-    private AudioSource audioSource;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        audioSource = GetComponent<AudioSource>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
+    public float pitch = 1;
 
     public void Trigger() {
         StartCoroutine(DoStuff());
     }
 
     private IEnumerator DoStuff() {
-        Vector3 position = bar.transform.position;
-        Vector3 scale = bar.transform.localScale;
+        RectTransform barTransform = bar.GetComponent<RectTransform>();
+        Vector3 position = barTransform.position;
+        Vector3 scale = barTransform.localScale;
         float bottomY = position.y - scale.y / 2;
-        float newY = bottomY + height / 2;
-        face.transform.position = bar.transform.position = new Vector3(position.x, newY, position.z);
-        bar.transform.localScale = new Vector3(scale.x, height, scale.y);
+        float newY = position.y + height / 2;
+        barTransform.transform.localScale = new Vector3(scale.x, height, scale.y);
+        face.transform.position = new Vector3(position.x, bar.transform.GetChild(0).position.y, position.z);
 
         face.GetComponent<Image>().overrideSprite = faceExpression;
 
-        audioSource.Play();
-        yield return new WaitUntil(() => audioSource.isPlaying == false);
+        sound.pitch = pitch;
+        if (!(sound.isPlaying && sound.loop))
+        {
+            sound.Play();
+        }
+        yield return new WaitUntil(() => sound.isPlaying == false);
 
         face.GetComponent<Image>().overrideSprite = null;
     }

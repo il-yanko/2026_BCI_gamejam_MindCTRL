@@ -61,8 +61,8 @@ public class CharacterBlobPresenter : MonoBehaviour
 
     void Awake()
     {
-        if (AudioSrc == null)
-            AudioSrc = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
+        if (AudioSrc == null) AudioSrc = GetComponent<AudioSource>();
+        if (AudioSrc == null) AudioSrc = gameObject.AddComponent<AudioSource>();
 
         _baseLocalPos = transform.localPosition;
         _restLocalPos = _baseLocalPos;

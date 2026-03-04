@@ -380,6 +380,7 @@ public class SceneBootstrapper : MonoBehaviour
         frt.offsetMin = Vector2.zero;
         frt.offsetMax = Vector2.zero;
 
+        blobGO.AddComponent<AudioSource>();   // must exist before CharacterBlobPresenter.Awake()
         var blob = blobGO.AddComponent<CharacterBlobPresenter>();
         blob.CharacterIndex = charIdx;
         blob.CharacterName  = CharNames[charIdx];

@@ -4,3 +4,15 @@
 __pycache__/
 testing/**
 .vscode/**
+
+# Unity auto-generated
+Library/
+Temp/
+Logs/
+UserSettings/
+obj/
+*.csproj
+*.sln
+
+# Claude Code internal
+.claude/

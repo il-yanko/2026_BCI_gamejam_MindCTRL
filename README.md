@@ -103,17 +103,23 @@ Tests/                                  # EditMode unit tests
 
 ## Switching to real BCI hardware
 
-1. In the Inspector on the `GameConfig` component, set **Use Mock BCI → unchecked**
-2. Install the real LSL4Unity package (replaces `LSLStub.cs`)
-3. Start the Python backend:
+LSL4Unity is already listed in `Packages/manifest.json` — Unity will download it automatically on first open. No extra package installation needed.
+
+**Steps:**
+
+1. Open the project in Unity (it will resolve the `LSL4Unity` package on import)
+2. In the Hierarchy, select the `GameConfig` component and uncheck **Use Mock BCI**
+3. Start the Python BCI backend:
 
 ```bash
 cd bci-essentials-python
 pip install -e .
-python demos/p300_demo.py   # or your custom backend
+python demos/p300_demo.py   # or your custom classifier
 ```
 
-4. Press Play — the game connects to the LSL stream automatically
+4. Press Play — Unity connects to the LSL stream and the P300 trial loop starts automatically
+
+> **Switching back to keyboard mode:** re-check **Use Mock BCI** in `GameConfig`. No code changes needed.
 
 ---
 

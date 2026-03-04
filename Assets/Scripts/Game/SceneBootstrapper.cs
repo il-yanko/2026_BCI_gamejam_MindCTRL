@@ -181,7 +181,7 @@ public class SceneBootstrapper : MonoBehaviour
             prefH: 62, flexW: true);
 
         // Blob row
-        var rowGO = new GameObject("BlobRow");
+        var rowGO = new GameObject("BlobRow", typeof(RectTransform));
         rowGO.transform.SetParent(panel.transform, false);
 
         var hl = rowGO.AddComponent<HorizontalLayoutGroup>();
@@ -207,7 +207,7 @@ public class SceneBootstrapper : MonoBehaviour
         }
 
         // Bottom bar
-        var bar = new GameObject("BottomBar");
+        var bar = new GameObject("BottomBar", typeof(RectTransform));
         bar.transform.SetParent(panel.transform, false);
 
         var bhl = bar.AddComponent<HorizontalLayoutGroup>();
@@ -262,7 +262,7 @@ public class SceneBootstrapper : MonoBehaviour
         MakeSeparator(panel.transform);
 
         // ── TBD content area ──────────────────────────────────────────────────
-        var contentBox = new GameObject("ContentBox");
+        var contentBox = new GameObject("ContentBox", typeof(RectTransform));
         contentBox.transform.SetParent(panel.transform, false);
         var cle = contentBox.AddComponent<LayoutElement>();
         cle.flexibleWidth  = 1;
@@ -287,7 +287,7 @@ public class SceneBootstrapper : MonoBehaviour
         MakeSeparator(panel.transform);
 
         // ── Back button ───────────────────────────────────────────────────────
-        var bar = new GameObject("BottomBar");
+        var bar = new GameObject("BottomBar", typeof(RectTransform));
         bar.transform.SetParent(panel.transform, false);
         var bhl = bar.AddComponent<HorizontalLayoutGroup>();
         bhl.childAlignment       = TextAnchor.MiddleCenter;
@@ -328,7 +328,7 @@ public class SceneBootstrapper : MonoBehaviour
             prefH: 26, flexW: true);
 
         // ── Main area: big blob (left) + note-head stack (right) ──────────────
-        var mainArea = new GameObject("MainArea");
+        var mainArea = new GameObject("MainArea", typeof(RectTransform));
         mainArea.transform.SetParent(col.transform, false);
         var hl = mainArea.AddComponent<HorizontalLayoutGroup>();
         hl.childAlignment       = TextAnchor.MiddleCenter;
@@ -343,13 +343,13 @@ public class SceneBootstrapper : MonoBehaviour
         // Big blob ─────────────────────────────────────────────────────────────
         // blobBox is controlled by the layout; BlobPresenter lives one level
         // below so the sway animation never fights the layout system.
-        var blobBox = new GameObject("BlobBox");
+        var blobBox = new GameObject("BlobBox", typeof(RectTransform));
         blobBox.transform.SetParent(mainArea.transform, false);
         var bble = blobBox.AddComponent<LayoutElement>();
         bble.flexibleWidth  = 1;
         bble.flexibleHeight = 1;
 
-        var blobGO = new GameObject("BlobPresenter");
+        var blobGO = new GameObject("BlobPresenter", typeof(RectTransform));
         blobGO.transform.SetParent(blobBox.transform, false);
         var brt = blobGO.GetComponent<RectTransform>();
         brt.anchorMin = Vector2.zero;
@@ -392,7 +392,7 @@ public class SceneBootstrapper : MonoBehaviour
         blob.FaceExpressions = FaceTexts;
 
         // Note-head stack (4 small blob heads, Yelling at top / Calm at bottom) ─
-        var noteStack = new GameObject("NoteStack");
+        var noteStack = new GameObject("NoteStack", typeof(RectTransform));
         noteStack.transform.SetParent(mainArea.transform, false);
         var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
         nsVl.childAlignment       = TextAnchor.MiddleCenter;
@@ -542,7 +542,7 @@ public class SceneBootstrapper : MonoBehaviour
 
     static void MakeSpacer(Transform parent, float height)
     {
-        var go = new GameObject("Spacer");
+        var go = new GameObject("Spacer", typeof(RectTransform));
         go.transform.SetParent(parent, false);
         go.AddComponent<LayoutElement>().preferredHeight = height;
     }

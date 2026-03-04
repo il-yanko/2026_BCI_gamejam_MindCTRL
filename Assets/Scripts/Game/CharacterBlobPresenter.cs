@@ -37,11 +37,17 @@ public class CharacterBlobPresenter : MonoBehaviour
     public float SwayAmount = 0.12f;   // world-units (or pixels in UI)
     public float BobAmount  = 0.06f;
 
+    [Header("Music Notes")]
+    public float NoteInterval = 0.55f;  // average seconds between spawned notes
+
     // ── Runtime state ─────────────────────────────────────────────────────────
     public int CurrentPitchIndex { get; private set; } = 1;  // start at neutral (level 2)
     private bool      _isSinging;
     private Coroutine _singRoutine;
+    private Coroutine _noteRoutine;
     private Vector3   _restLocalPos;
+
+    static readonly string[] NoteGlyphs = { "♩", "♪", "♫", "♬" };
 
     // ── Unity lifecycle ────────────────────────────────────────────────────────
 
@@ -77,6 +83,8 @@ public class CharacterBlobPresenter : MonoBehaviour
         _isSinging = true;
         if (_singRoutine == null)
             _singRoutine = StartCoroutine(SingAnimation());
+        if (_noteRoutine == null)
+            _noteRoutine = StartCoroutine(NoteLoop());
 
         if (GameConfig.Instance == null || !GameConfig.Instance.enableAudio) return;
         AudioClip clip = ClipAt(CurrentPitchIndex);
@@ -93,6 +101,7 @@ public class CharacterBlobPresenter : MonoBehaviour
         AudioSrc?.Pause();
         _isSinging = false;
         StopSingAnim();
+        StopNoteAnim();
     }
 
     public void StopVoice()
@@ -100,6 +109,7 @@ public class CharacterBlobPresenter : MonoBehaviour
         AudioSrc?.Stop();
         _isSinging = false;
         StopSingAnim();
+        StopNoteAnim();
     }
 
     // ── Animation ─────────────────────────────────────────────────────────────
@@ -123,6 +133,68 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         if (_singRoutine != null) { StopCoroutine(_singRoutine); _singRoutine = null; }
         transform.localPosition = _restLocalPos;
+    }
+
+    // ── Music notes ───────────────────────────────────────────────────────────
+
+    private void StopNoteAnim()
+    {
+        if (_noteRoutine != null) { StopCoroutine(_noteRoutine); _noteRoutine = null; }
+    }
+
+    private IEnumerator NoteLoop()
+    {
+        while (_isSinging)
+        {
+            SpawnNote();
+            yield return new WaitForSeconds(NoteInterval + Random.Range(-0.15f, 0.20f));
+        }
+        _noteRoutine = null;
+    }
+
+    private void SpawnNote()
+    {
+        // Parent to blobBox (transform.parent) so notes don't sway with the blob
+        // but do originate from the blob's container position.
+        var parent = transform.parent;
+        if (parent == null) return;
+
+        var noteGO = new GameObject("Note");
+        noteGO.transform.SetParent(parent, false);
+        noteGO.transform.SetAsLastSibling();  // render on top of the blob
+
+        var txt       = noteGO.AddComponent<Text>();
+        txt.text      = NoteGlyphs[Random.Range(0, NoteGlyphs.Length)];
+        txt.fontSize  = Random.Range(24, 42);
+        txt.alignment = TextAnchor.MiddleCenter;
+        txt.color     = new Color(BlobColor.r, BlobColor.g, BlobColor.b, 0.90f);
+
+        var rt       = noteGO.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(54, 54);
+        // Start near the top of the blob circle, randomly offset left/right
+        rt.anchoredPosition = new Vector2(Random.Range(-28f, 28f), 90f);
+
+        StartCoroutine(FloatNote(txt, rt));
+    }
+
+    private IEnumerator FloatNote(Text txt, RectTransform rt)
+    {
+        float duration = Random.Range(1.0f, 1.7f);
+        float elapsed  = 0f;
+        var   start    = rt.anchoredPosition;
+        float driftX   = Random.Range(-20f, 20f);
+
+        while (elapsed < duration)
+        {
+            if (rt == null) yield break;   // blob was destroyed mid-flight
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            rt.anchoredPosition = start + new Vector2(driftX * t, 80f * t);
+            txt.color = new Color(txt.color.r, txt.color.g, txt.color.b, Mathf.Lerp(0.90f, 0f, t));
+            yield return null;
+        }
+
+        if (rt != null) Destroy(rt.gameObject);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

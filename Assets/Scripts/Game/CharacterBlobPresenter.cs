@@ -157,7 +157,14 @@ public class CharacterBlobPresenter : MonoBehaviour
 
         if (_isSinging) return;  // SingAnimation reads _restLocalPos each frame — handled
 
-        // Smoothly drift to new height when not singing
+        // Snap immediately if the GO is inactive (can't start coroutines while hidden)
+        if (!gameObject.activeInHierarchy)
+        {
+            transform.localPosition = _restLocalPos;
+            return;
+        }
+
+        // Smoothly drift to new height when active and not singing
         if (_moveRoutine != null) StopCoroutine(_moveRoutine);
         _moveRoutine = StartCoroutine(MoveToRest());
     }

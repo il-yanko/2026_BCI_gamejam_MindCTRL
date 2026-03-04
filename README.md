@@ -1,4 +1,4 @@
-# MindCTRL - BCI Game for Disabled Children
+# MindCTRL - BCI Game for Children
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)]()
@@ -101,6 +101,10 @@ MindCTRL/
 │   ├── TESTING_GUIDE.md
 │   └── API_REFERENCE.md
 └── Tests/                        # Test scripts
+├── Assets/
+│   ├── Prefabs/                 # Character blob prefabs (red, blue, yellow, green)
+│   ├── Audio/                   # BackgroundMusic.wav placeholder
+│   └── Scenes/                  # Unity scenes (PrototypeScene.unity)
 ```
 
 ## 🧪 Mock BCI Flag
@@ -287,27 +291,39 @@ git commit -m "Add voice audio files"
 
 ### User Documentation
 - **[README.md](README.md)** - This file
-- **[START_HERE.md](START_HERE.md)** - Getting started
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Architecture & shortcuts
+- **[START_HERE.md](Documentation/START_HERE.md)** - Getting started
+- **[QUICK_REFERENCE.md](Documentation/QUICK_REFERENCE.md)** - Architecture & shortcuts
 
 ### Developer Documentation
 - **[DEVELOPER_SETUP.md](Documentation/DEVELOPER_SETUP.md)** - Team setup & workflow
-- **[SETUP_CHECKLIST.md](SETUP_CHECKLIST.md)** - Step-by-step implementation
+- **[SETUP_CHECKLIST.md](Documentation/SETUP_CHECKLIST.md)** - Step-by-step implementation
 - **[ML_Pipeline/DEVELOPMENT.md](ML_Pipeline/DEVELOPMENT.md)** - ML integration guide
-- **[IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)** - Code configuration
-- **[FILE_INVENTORY.md](FILE_INVENTORY.md)** - Complete file listing
+- **[IMPLEMENTATION_GUIDE.md](Documentation/IMPLEMENTATION_GUIDE.md)** - Code configuration
+- **[FILE_INVENTORY.md](Documentation/FILE_INVENTORY.md)** - Complete file listing
 
 ## 🧪 Testing
 
 ### Unit Testing
+The repository contains two types of unit tests:
+
+* **C# EditMode tests** located in `Tests/Unit/`. These are executed inside the
+  Unity editor using the built‑in NUnit runner (Window → General → Test
+  Runner → EditMode → Run All).
+* **Python tests** (optional) under the same folder; you can run them with
+  `pytest` if you later add any backend scripts.
+
+To run the Python tests (if any are present):
+
 ```bash
 cd Tests
-python -m pytest  # If tests implemented
+python -m pytest
 ```
 
 ### Game Testing
-1. Open Unity
-2. In GameConfig: `Use Mock BCI = true`, `Enable Audio = false`
+1. Open Unity and load `Assets/Scenes/PrototypeScene.unity` (includes 4
+   character blobs with background music already attached).
+2. In GameConfig: `Use Mock BCI = true`, `Enable Audio = false` if you prefer
+   testing without the music.
 3. Press Play
 4. Use keyboard shortcuts
 5. Verify character selection and feedback

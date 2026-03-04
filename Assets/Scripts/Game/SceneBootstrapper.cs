@@ -52,7 +52,12 @@ public class SceneBootstrapper : MonoBehaviour
             out var bci,
             out var handler);
 
-        // 2. Canvas + all panels
+        // 2. EventSystem — required for all UI button input
+        var esGO = new GameObject("EventSystem");
+        esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+        esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+
+        // 3. Canvas + all panels
         var canvas       = BuildCanvas();
         var mainMenu     = BuildMainMenu(canvas.transform);
         var trainingPanel = BuildTrainingPanel(canvas.transform);

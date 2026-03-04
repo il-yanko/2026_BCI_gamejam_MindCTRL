@@ -83,6 +83,7 @@ public class SceneBootstrapper : MonoBehaviour
         flow.PitchButtons    = pitchButtons;
         flow.PlayPauseButton = playBtn;
         flow.PlayPauseLabel  = playLabel;
+        flow.BCIController   = bci;
 
         // 5. Wire BCI controller (16 pitch buttons + 1 play/pause = 17 stimuli)
         bci.SelectionHandler   = handler;

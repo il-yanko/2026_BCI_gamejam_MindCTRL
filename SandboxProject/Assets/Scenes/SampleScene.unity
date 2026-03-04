@@ -651,6 +651,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bar Control Group 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4110879437744823012, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+      propertyPath: m_Color.b
+      value: 0.8235294
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110879437744823012, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+      propertyPath: m_Color.g
+      value: 0.3647059
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110879437744823012, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8011828
+      objectReference: {fileID: 0}
     - target: {fileID: 8676426317809025691, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_Pitch
       value: 1.5
@@ -886,6 +898,18 @@ PrefabInstance:
     - target: {fileID: 4110343722935187266, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_Name
       value: Bar Control Group 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110879437744823012, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+      propertyPath: m_Color.b
+      value: 0.3647059
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110879437744823012, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+      propertyPath: m_Color.g
+      value: 0.58492535
+      objectReference: {fileID: 0}
+    - target: {fileID: 4110879437744823012, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+      propertyPath: m_Color.r
+      value: 0.8235294
       objectReference: {fileID: 0}
     - target: {fileID: 8676426317809025691, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_Pitch

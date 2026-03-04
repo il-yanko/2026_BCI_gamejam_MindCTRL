@@ -1,0 +1,18 @@
+# MindCTRL ML Pipeline dependencies
+# Install with:  pip install -r requirements.txt
+# Or install bci-essentials directly:
+#   cd ../bci-essentials-python && pip install -e .
+
+# Core BCI pipeline (also installs numpy, scipy, scikit-learn, pyriemann, pylsl, pyxdf)
+bci-essentials @ file:../bci-essentials-python
+
+# Notebooks
+jupyter
+ipykernel
+seaborn
+
+# Model persistence
+joblib
+
+# Optional: faster linear algebra
+# mkl

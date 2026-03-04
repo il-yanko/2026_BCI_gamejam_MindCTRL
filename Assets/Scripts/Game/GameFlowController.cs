@@ -39,7 +39,7 @@ public class GameFlowController : MonoBehaviour
     public Text   PlayPauseLabel;
 
     // ── Runtime state ─────────────────────────────────────────────────────────
-    private readonly int[] _currentPitch = { 1, 1, 1, 1 };  // neutral start
+    private readonly int[] _currentPitch = { -1, -1, -1, -1 };  // -1 = nothing selected yet
     private bool _isPlaying;
 
     public bool IsPlaying => _isPlaying;
@@ -58,10 +58,6 @@ public class GameFlowController : MonoBehaviour
         for (int i = 0; i < Blobs.Length; i++)
             if (Blobs[i] != null) Blobs[i].CharacterIndex = i;
 
-        // Apply starting pitches
-        for (int c = 0; c < 4; c++)
-            Blobs[c]?.SetCurrentPitch(_currentPitch[c]);
-
         RefreshAllButtons();
         ShowMainMenu();
     }
@@ -78,9 +74,6 @@ public class GameFlowController : MonoBehaviour
 
     public void StartNewGame()
     {
-        // Reset every blob to pitch 1 (neutral)
-        for (int c = 0; c < 4; c++) SetPitch(c, 1);
-
         SetPanelActive(MainMenuPanel, false);
         SetPanelActive(GamePanel,     true);
         SetPanelActive(TrainingPanel, false);

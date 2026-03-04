@@ -16,3 +16,12 @@ obj/
 
 # Claude Code internal
 .claude/
+
+# ML Pipeline — large data & model files
+ML_Pipeline/data/*.xdf
+ML_Pipeline/data/*.edf
+ML_Pipeline/models/*.joblib
+ML_Pipeline/models/*.pkl
+ML_Pipeline/models/*.onnx
+ML_Pipeline/__pycache__/
+ML_Pipeline/.ipynb_checkpoints/

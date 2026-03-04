@@ -17,16 +17,12 @@ cd 2026_BCI_gamejam_MindCTRL
 #    Required version: 6000.3.10f1
 #    Unity will import packages automatically (~5 min first time)
 
-# 3. One-time scene setup (30 seconds):
-#    File → New Scene (Empty)
-#    Hierarchy → right-click → Create Empty → rename "Bootstrapper"
-#    Inspector → Add Component → SceneBootstrapper
-#    File → Save Scene → Assets/Scenes/Game.unity
+# 3. Open Assets/Scenes/Game.unity
 
 # 4. Press Play
 ```
 
-The scene builds itself entirely at runtime — no prefabs or manual wiring needed.
+The scene (`Assets/Scenes/Game.unity`) already contains a `Bootstrapper` GameObject with the `SceneBootstrapper` component. It builds the entire UI at runtime — no prefabs or manual wiring needed.
 
 ---
 
@@ -169,8 +165,8 @@ All settings live on the `GameConfig` component (created automatically by `Scene
 
 | Symptom | Fix |
 |---------|-----|
-| Scene is empty on Play | Add `SceneBootstrapper` component to a GameObject |
-| Buttons do nothing | Make sure you pressed **New Game** first |
+| Scene is empty on Play | Make sure `Assets/Scenes/Game.unity` is open |
+| Buttons do nothing | Press **New Game** from the main menu first |
 | No flashing | Check Unity console for errors; verify `GamePanel` is active |
 | Audio silent | Assign `AudioClip[]` in SceneBootstrapper Inspector, or set `enableAudio = true` |
 | BCI not connecting | Ensure Python backend is running; check LSL stream name |

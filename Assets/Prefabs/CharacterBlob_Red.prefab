@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &100000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 100001}
+  - component: {fileID: 100002}
+  m_Layer: 0
+  m_Name: CharacterBlob_Red
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &100001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabParentObject: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1781d7d2-1e79-4325-8f38-f265a8edff80, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  characterIndex: 0
+  faces: []
+  blobColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.2
+  highlightColor: {r: 1, g: 1, b: 1, a: 1}
+  audioSource: {fileID: 100002}
+
+--- !u!204 &100002
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  m_Loop: 1
+  m_AudioClip: {fileID: 2100000, guid: f8150756-4346-48cd-8cfe-a7c4e44b1911, type: 3}
+  m_OutputAudioMixerGroup: {fileID: 0}

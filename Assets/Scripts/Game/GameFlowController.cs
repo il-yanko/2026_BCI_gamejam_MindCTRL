@@ -116,9 +116,10 @@ public class GameFlowController : MonoBehaviour
         _currentPitch[charIndex] = pitchIndex;
         var blob = Blobs[charIndex];
         blob?.SetCurrentPitch(pitchIndex);
-        // If the blob isn't already singing, clicking its pitch head starts it.
-        // If it is singing (global play active), SetCurrentPitch already switched the note.
-        if (blob != null && !blob.IsSinging)
+        // Only start singing when the blob is visible (panel active).
+        // Skips the PlayVoice call during StartNewGame() pitch resets, which
+        // run before GamePanel is shown and would crash the coroutine.
+        if (blob != null && !blob.IsSinging && blob.gameObject.activeInHierarchy)
             blob.PlayVoice();
         RefreshButtonsForCharacter(charIndex);
     }

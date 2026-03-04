@@ -67,7 +67,8 @@ public class SceneBootstrapper : MonoBehaviour
             out var blobs,
             out var pitchButtons,
             out var playBtn,
-            out var playLabel);
+            out var playLabel,
+            out var playPausePresenter);
 
         // 3. Wire voice clips
         var allClips = new[] { RedVoiceClips, BlueVoiceClips, YellowVoiceClips, GreenVoiceClips };
@@ -83,9 +84,10 @@ public class SceneBootstrapper : MonoBehaviour
         flow.PlayPauseButton = playBtn;
         flow.PlayPauseLabel  = playLabel;
 
-        // 5. Wire BCI controller
-        bci.SelectionHandler = handler;
-        bci.Presenters       = pitchButtons;
+        // 5. Wire BCI controller (16 pitch buttons + 1 play/pause = 17 stimuli)
+        bci.SelectionHandler   = handler;
+        bci.Presenters         = pitchButtons;
+        bci.PlayPausePresenter = playPausePresenter;
     }
 
     // ── BCI / logic system ────────────────────────────────────────────────────
@@ -163,11 +165,12 @@ public class SceneBootstrapper : MonoBehaviour
     // ── Game Panel ────────────────────────────────────────────────────────────
 
     void BuildGamePanel(Transform root,
-        out GameObject            gamePanel,
+        out GameObject               gamePanel,
         out CharacterBlobPresenter[] blobs,
         out PitchButtonPresenter[]   pitchButtons,
         out Button                   playBtn,
-        out Text                     playLabel)
+        out Text                     playLabel,
+        out PlayPauseButtonPresenter playPausePresenter)
     {
         var panel = MakePanel(root, "GamePanel", new Color(0.05f, 0.02f, 0.12f));
         Stretch(panel);
@@ -233,6 +236,10 @@ public class SceneBootstrapper : MonoBehaviour
 
         playBtn   = playGO.GetComponent<Button>();
         playLabel = playGO.GetComponentInChildren<Text>();
+
+        // Add P300 stimulus component so the play/pause button is the 17th stimulus
+        playPausePresenter             = playGO.AddComponent<PlayPauseButtonPresenter>();
+        playPausePresenter.ButtonImage = playGO.GetComponent<Image>();
 
         gamePanel = panel;
     }

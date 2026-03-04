@@ -16,7 +16,9 @@ using BCIEssentials.LSLFramework;
 public class MindCTRLBCIController : MonoBehaviour
 {
     [Header("P300 stimuli — 16 pitch buttons (4 chars × 4 pitches, row-major)")]
-    public PitchButtonPresenter[]  Presenters      = new PitchButtonPresenter[16];
+    public PitchButtonPresenter[]    Presenters        = new PitchButtonPresenter[16];
+    /// <summary>17th stimulus — the Play / Pause button (index 16 in predictions).</summary>
+    public PlayPauseButtonPresenter  PlayPausePresenter;
     public CharacterSelectionHandler SelectionHandler;
 
     [Header("Trial parameters")]
@@ -50,6 +52,7 @@ public class MindCTRLBCIController : MonoBehaviour
 
         foreach (var p in Presenters)
             if (p != null) _presenterCollection.Add(p);
+        if (PlayPausePresenter != null) _presenterCollection.Add(PlayPausePresenter);
 
         if (!GameConfig.Instance.useMockBCI)
             _responseProvider.SubscribePredictions(SelectionHandler.OnPrediction);
@@ -79,7 +82,8 @@ public class MindCTRLBCIController : MonoBehaviour
     /// </summary>
     public void MockPrediction(int flatIndex)
     {
-        string probs = BuildProbabilities(flatIndex, 16);
+        int count = PlayPausePresenter != null ? 17 : 16;
+        string probs = BuildProbabilities(flatIndex, count);
         Prediction pred = Prediction.ParseValues(
             new string[] { (flatIndex + 1).ToString(), probs });
         SelectionHandler.OnPrediction(pred);

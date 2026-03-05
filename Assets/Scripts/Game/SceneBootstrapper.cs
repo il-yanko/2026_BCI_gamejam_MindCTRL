@@ -18,6 +18,10 @@ using UnityEngine.UI;
 /// </summary>
 public class SceneBootstrapper : MonoBehaviour
 {
+    [Header("BCI Mode")]
+    [Tooltip("True  = keyboard mock (Space/1-4/QWER/…). False = real backend predictions via LSL.")]
+    public bool UseMockBCI = true;
+
     [Header("Voice Clips — 4 per character (index 0=Calm, 1=Happy, 2=Excited, 3=Yelling)")]
     public AudioClip[] RedVoiceClips    = new AudioClip[4];
     public AudioClip[] BlueVoiceClips   = new AudioClip[4];
@@ -58,9 +62,9 @@ public class SceneBootstrapper : MonoBehaviour
         esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
 
         // 3. Canvas + all panels
-        var canvas       = BuildCanvas();
-        var mainMenu     = BuildMainMenu(canvas.transform);
-        var trainingPanel = BuildTrainingPanel(canvas.transform);
+        var canvas        = BuildCanvas();
+        var mainMenu      = BuildMainMenu(canvas.transform);
+        var trainingPanel = BuildTrainingPanel(canvas.transform, out var tc);
 
         BuildGamePanel(canvas.transform,
             out var gamePanel,
@@ -89,6 +93,11 @@ public class SceneBootstrapper : MonoBehaviour
         bci.SelectionHandler   = handler;
         bci.Presenters         = pitchButtons;
         bci.PlayPausePresenter = playPausePresenter;
+
+        // 6. Wire TrainingController UI
+        tc.StartTrainBtn.onClick.AddListener(tc.BeginTraining);
+        tc.StartEvalBtn.onClick.AddListener(tc.BeginEvaluation);
+        tc.StopBtn.onClick.AddListener(tc.StopSequence);
     }
 
     // ── BCI / logic system ────────────────────────────────────────────────────
@@ -100,10 +109,12 @@ public class SceneBootstrapper : MonoBehaviour
     {
         var go = new GameObject("BCISystem");
         go.AddComponent<GameConfig>();          // sets GameConfig.Instance
+        GameConfig.Instance.useMockBCI = UseMockBCI;
         flow    = go.AddComponent<GameFlowController>();   // sets GameFlowController.Instance
         handler = go.AddComponent<CharacterSelectionHandler>();
         bci     = go.AddComponent<MindCTRLBCIController>();
         go.AddComponent<MockP300Input>();
+        go.AddComponent<TrainingController>();
     }
 
     // ── Canvas ────────────────────────────────────────────────────────────────
@@ -245,69 +256,107 @@ public class SceneBootstrapper : MonoBehaviour
         gamePanel = panel;
     }
 
-    // ── Training Panel (placeholder) ──────────────────────────────────────────
+    // ── Training Panel ────────────────────────────────────────────────────────
 
-    GameObject BuildTrainingPanel(Transform root)
+    GameObject BuildTrainingPanel(Transform root, out TrainingController tc)
     {
+        // Resolve TrainingController added by BuildBCISystem
+        tc = FindObjectOfType<TrainingController>();
+
         var panel = MakePanel(root, "TrainingPanel", new Color(0.04f, 0.04f, 0.14f));
         Stretch(panel);
         panel.SetActive(false);
 
-        // Root vertical layout
         var vl = panel.AddComponent<VerticalLayoutGroup>();
-        vl.childAlignment       = TextAnchor.UpperCenter;
-        vl.spacing              = 20;
-        vl.padding              = new RectOffset(40, 40, 30, 30);
+        vl.childAlignment         = TextAnchor.UpperCenter;
+        vl.spacing                = 14;
+        vl.padding                = new RectOffset(40, 40, 24, 24);
         vl.childForceExpandWidth  = true;
         vl.childForceExpandHeight = false;
 
-        // ── Header ────────────────────────────────────────────────────────────
+        // Header
         MakeText(panel.transform, "Header", "TRAINING MODE",
-            52, new Color(0.65f, 0.75f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold,
-            prefH: 70, flexW: true);
-
-        MakeText(panel.transform, "Sub", "Learn to control the blobs before the performance.",
-            26, new Color(0.65f, 0.65f, 0.80f), TextAnchor.MiddleCenter,
-            prefH: 40, flexW: true);
+            48, new Color(0.65f, 0.75f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold,
+            prefH: 62, flexW: true);
 
         MakeSeparator(panel.transform);
 
-        // ── TBD content area ──────────────────────────────────────────────────
-        var contentBox = MakeContainer(panel.transform, "ContentBox");
-        var cle = contentBox.AddComponent<LayoutElement>();
-        cle.flexibleWidth  = 1;
-        cle.flexibleHeight = 1;
-        cle.minHeight      = 400;
+        // Cue box
+        var cueBox = MakePanel(panel.transform, "CueBox", new Color(0.10f, 0.10f, 0.22f));
+        var cueLE  = cueBox.AddComponent<LayoutElement>();
+        cueLE.preferredHeight = 160;
+        cueLE.flexibleWidth   = 1;
 
-        var cvl = contentBox.AddComponent<VerticalLayoutGroup>();
-        cvl.childAlignment       = TextAnchor.MiddleCenter;
-        cvl.childForceExpandWidth  = true;
-        cvl.childForceExpandHeight = false;
-        cvl.spacing = 16;
+        var cueText = MakeText(cueBox.transform, "CueLabel",
+            "Press a button to begin.",
+            36, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold,
+            prefH: 160, flexW: true).GetComponent<Text>();
+        var cueRT = cueText.GetComponent<RectTransform>();
+        cueRT.anchorMin = Vector2.zero;
+        cueRT.anchorMax = Vector2.one;
+        cueRT.offsetMin = new Vector2(12, 8);
+        cueRT.offsetMax = new Vector2(-12, -8);
+        if (tc != null) tc.CueLabel = cueText;
 
-        MakeText(contentBox.transform, "TBDLabel", "[ Training content coming soon ]",
-            30, new Color(0.45f, 0.45f, 0.60f), TextAnchor.MiddleCenter,
-            FontStyle.Italic, prefH: 46, flexW: true);
+        // Progress label
+        var progressText = MakeText(panel.transform, "ProgressLabel", "",
+            22, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleCenter,
+            prefH: 30, flexW: true).GetComponent<Text>();
+        if (tc != null) tc.ProgressLabel = progressText;
 
-        MakeText(contentBox.transform, "Hint",
-            "You will be able to practise selecting pitches here\nbefore using the BCI headset in the main performance.",
-            22, new Color(0.55f, 0.55f, 0.70f), TextAnchor.MiddleCenter,
-            prefH: 64, flexW: true);
+        // Result box
+        var resultBox = MakePanel(panel.transform, "ResultBox", new Color(0.08f, 0.10f, 0.18f));
+        var resultLE  = resultBox.AddComponent<LayoutElement>();
+        resultLE.preferredHeight = 90;
+        resultLE.flexibleWidth   = 1;
+
+        var resultText = MakeText(resultBox.transform, "ResultLabel", "",
+            22, new Color(0.6f, 1f, 0.6f), TextAnchor.MiddleCenter,
+            prefH: 90, flexW: true).GetComponent<Text>();
+        var rrt = resultText.GetComponent<RectTransform>();
+        rrt.anchorMin = Vector2.zero;
+        rrt.anchorMax = Vector2.one;
+        rrt.offsetMin = new Vector2(12, 6);
+        rrt.offsetMax = new Vector2(-12, -6);
+        if (tc != null) tc.ResultLabel = resultText;
 
         MakeSeparator(panel.transform);
 
-        // ── Back button ───────────────────────────────────────────────────────
-        var bar = MakeContainer(panel.transform, "BottomBar");
+        // Button bar
+        var bar = MakeContainer(panel.transform, "ButtonBar");
         var bhl = bar.AddComponent<HorizontalLayoutGroup>();
-        bhl.childAlignment       = TextAnchor.MiddleCenter;
+        bhl.childAlignment         = TextAnchor.MiddleCenter;
+        bhl.spacing                = 20;
         bhl.childForceExpandWidth  = false;
         bhl.childForceExpandHeight = false;
-        var ble = bar.AddComponent<LayoutElement>();
-        ble.preferredHeight = 72;
-        ble.flexibleWidth   = 1;
+        bar.AddComponent<LayoutElement>().preferredHeight = 70;
 
-        MakeButton(bar.transform, "BackBtn", "< MAIN MENU",
-            new Color(0.28f, 0.28f, 0.40f), 26, 240, 58,
+        var trainGO = MakeButton(bar.transform, "TrainBtn", "START TRAINING",
+            new Color(0.20f, 0.55f, 0.85f), 26, 260, 60, () => { }, FontStyle.Bold);
+        var trainBtn = trainGO.GetComponent<Button>();
+        if (tc != null) tc.StartTrainBtn = trainBtn;
+
+        var evalGO = MakeButton(bar.transform, "EvalBtn", "START EVALUATION",
+            new Color(0.20f, 0.70f, 0.35f), 26, 280, 60, () => { }, FontStyle.Bold);
+        var evalBtn = evalGO.GetComponent<Button>();
+        if (tc != null) tc.StartEvalBtn = evalBtn;
+
+        var stopGO = MakeButton(bar.transform, "StopBtn", "STOP",
+            new Color(0.65f, 0.18f, 0.18f), 24, 130, 60, () => { });
+        var stopBtn = stopGO.GetComponent<Button>();
+        stopBtn.interactable = false;
+        if (tc != null) tc.StopBtn = stopBtn;
+
+        // Back button
+        var backBar = MakeContainer(panel.transform, "BackBar");
+        var bbhl = backBar.AddComponent<HorizontalLayoutGroup>();
+        bbhl.childAlignment         = TextAnchor.MiddleCenter;
+        bbhl.childForceExpandWidth  = false;
+        bbhl.childForceExpandHeight = false;
+        backBar.AddComponent<LayoutElement>().preferredHeight = 52;
+
+        MakeButton(backBar.transform, "BackBtn", "< MAIN MENU",
+            new Color(0.28f, 0.28f, 0.40f), 22, 220, 48,
             () => GameFlowController.Instance?.ShowMainMenu());
 
         return panel;

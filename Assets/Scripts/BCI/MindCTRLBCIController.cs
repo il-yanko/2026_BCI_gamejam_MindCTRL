@@ -89,6 +89,22 @@ public class MindCTRLBCIController : MonoBehaviour
         SelectionHandler.OnPrediction(pred);
     }
 
+    /// <summary>Run one training trial with a known target index (0-16).</summary>
+    public IEnumerator RunTrainingTrial(int targetIndex)
+    {
+        _trial.StartTrainingTrial(targetIndex);
+        yield return _trial.AwaitCompletion();
+        yield return new WaitForSeconds(TrialPauseDuration);
+    }
+
+    /// <summary>Run one testing trial (no known target) and wait for completion.</summary>
+    public IEnumerator RunTestingTrialCoroutine()
+    {
+        _trial.StartTestingTrial();
+        yield return _trial.AwaitCompletion();
+        yield return new WaitForSeconds(TrialPauseDuration);
+    }
+
     // ── Private ────────────────────────────────────────────────────────────────
 
     private IEnumerator RunContinuous()

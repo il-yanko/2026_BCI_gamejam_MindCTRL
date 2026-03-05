@@ -125,7 +125,8 @@ public class GameFlowController : MonoBehaviour
     private void PlayGame()
     {
         _isPlaying = true;
-        foreach (var b in Blobs) b?.PlayVoice();
+        foreach (var b in Blobs)
+            if (b != null && b.gameObject.activeInHierarchy) b.PlayVoice();
         UpdatePlayPauseLabel();
     }
 

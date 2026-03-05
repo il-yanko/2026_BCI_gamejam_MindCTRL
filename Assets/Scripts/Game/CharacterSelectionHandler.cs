@@ -10,9 +10,13 @@ using BCIEssentials.LSLFramework;
 /// </summary>
 public class CharacterSelectionHandler : SelectionBehaviour
 {
+    /// <summary>Fired with the raw flat index (0-16) on every prediction.</summary>
+    public event System.Action<int> OnIndexPredicted;
+
     public override void OnPrediction(Prediction prediction)
     {
         int flat = prediction.Index;
+        OnIndexPredicted?.Invoke(flat);
 
         if (flat == 16)
         {

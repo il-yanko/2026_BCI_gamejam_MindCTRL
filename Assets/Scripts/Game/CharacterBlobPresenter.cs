@@ -91,9 +91,9 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         // Animation always starts regardless of audio availability.
         _isSinging = true;
-        if (_singRoutine == null)
+        if (_singRoutine == null && gameObject.activeInHierarchy)
             _singRoutine = StartCoroutine(SingAnimation());
-        if (_noteRoutine == null)
+        if (_noteRoutine == null && gameObject.activeInHierarchy)
             _noteRoutine = StartCoroutine(NoteLoop());
 
         if (GameConfig.Instance == null || !GameConfig.Instance.enableAudio) return;

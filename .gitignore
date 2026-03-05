@@ -1,6 +1,5 @@
 *.csv
 *.xlsx
-*.png
 __pycache__/
 testing/**
 .vscode/**

@@ -4749,7 +4749,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 464254de7f56ddb419569333b1ccf1b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _trialBehaviour: {fileID: 710385277}
+  _trialBehaviour: {fileID: 144320135}
   _trainingBehaviour: {fileID: 2078781567}
 --- !u!4 &2078781569
 Transform:

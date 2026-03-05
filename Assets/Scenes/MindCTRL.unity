@@ -229,8 +229,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42205bd9b33f84215b9b0c7ae8c94d95, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneBootstrapper
+  UseMockBCI: 1
   RedVoiceClips:
   - {fileID: 0}
   - {fileID: 0}
@@ -251,6 +252,18 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  BackgroundSprite: {fileID: 21300000, guid: aabb0001cc111111aabbcc1234abcdef, type: 3}
+  ForegroundSprite: {fileID: 21300000, guid: e76e8dfeca2c74a15aedbcd45de0cac8, type: 3}
+  BlobBodySprites:
+  - {fileID: 21300000, guid: aabb0008cc111111aabbcc1234abcdef, type: 3}
+  - {fileID: 21300000, guid: aabb0009cc111111aabbcc1234abcdef, type: 3}
+  - {fileID: 21300000, guid: aabb0010cc111111aabbcc1234abcdef, type: 3}
+  - {fileID: 21300000, guid: aabb0007cc111111aabbcc1234abcdef, type: 3}
+  FaceSprites:
+  - {fileID: 21300000, guid: 39ba85785ac0844ab892d12c7632ef1b, type: 3}
+  - {fileID: 21300000, guid: 70434bc74db5c40b5bb7934a2673bbab, type: 3}
+  - {fileID: 21300000, guid: 025b4152154a44748a105b681e2aec78, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
 --- !u!4 &912541543
 Transform:
   m_ObjectHideFlags: 0

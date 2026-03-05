@@ -7,8 +7,14 @@ using BCIEssentials.LSLFramework;
 /// <summary>
 /// Orchestrates the P300 BCI trial loop for the 4×4 pitch-button grid.
 ///
-/// All 16 PitchButtonPresenters are registered as P300 stimuli.
+/// Uses CheckerboardFlashTrialBehaviour (4 rows × 4 columns = 16 cells).
+/// Each repetition flashes half the stimuli at once in a checkerboard pattern:
+///   black-rows → white-rows → black-columns → white-columns  (8 group-flashes)
+/// This is ~2× faster than single-flash and produces cleaner P300 ERPs for recording.
+///
 /// Prediction index 0-15:  charIndex = index / 4,  pitchIndex = index % 4.
+/// The SING button (PlayPausePresenter) is NOT part of the checkerboard grid
+/// and must be triggered by a dedicated key/button press.
 ///
 /// In mock mode (GameConfig.useMockBCI) the ResponseProvider is NOT started.
 /// Call MockPrediction(flatIndex) to simulate a classifier result.
@@ -27,11 +33,15 @@ public class MindCTRLBCIController : MonoBehaviour
     public float OffTime            = 0.075f;
     public float TrialPauseDuration = 0.5f;
 
+    [Header("Checkerboard grid (must match stimulus count: Rows × Columns = 16)")]
+    public int GridRows    = 4;
+    public int GridColumns = 4;
+
     // Framework components (created at runtime)
-    private MarkerWriter               _markerWriter;
-    private ResponseProvider           _responseProvider;
-    private SingleFlashTrialBehaviour  _trial;
-    private StimulusPresenterCollection _presenterCollection;
+    private MarkerWriter                    _markerWriter;
+    private ResponseProvider                _responseProvider;
+    private CheckerboardFlashTrialBehaviour _trial;
+    private StimulusPresenterCollection     _presenterCollection;
 
     private Coroutine _continuousRoutine;
 
@@ -41,18 +51,22 @@ public class MindCTRLBCIController : MonoBehaviour
     {
         _markerWriter        = GetOrAdd<MarkerWriter>();
         _responseProvider    = GetOrAdd<ResponseProvider>();
-        _trial               = GetOrAdd<SingleFlashTrialBehaviour>();
+        _trial               = GetOrAdd<CheckerboardFlashTrialBehaviour>();
         _presenterCollection = GetOrAdd<RuntimePresenterCollection>();
 
         _trial.FlashesPerOption    = FlashesPerOption;
         _trial.OnTime              = OnTime;
         _trial.OffTime             = OffTime;
+        _trial.Rows                = GridRows;
+        _trial.Columns             = GridColumns;
         _trial.MarkerWriter        = _markerWriter;
         _trial.PresenterCollection = _presenterCollection;
 
+        // Only the 16 pitch buttons go into the checkerboard grid (4×4).
+        // PlayPausePresenter is excluded — it falls outside the grid and
+        // must be triggered via a dedicated button press.
         foreach (var p in Presenters)
             if (p != null) _presenterCollection.Add(p);
-        if (PlayPausePresenter != null) _presenterCollection.Add(PlayPausePresenter);
 
         if (!GameConfig.Instance.useMockBCI)
             _responseProvider.SubscribePredictions(SelectionHandler.OnPrediction);
@@ -82,7 +96,7 @@ public class MindCTRLBCIController : MonoBehaviour
     /// </summary>
     public void MockPrediction(int flatIndex)
     {
-        int count = PlayPausePresenter != null ? 17 : 16;
+        int count = GridRows * GridColumns;
         string probs = BuildProbabilities(flatIndex, count);
         Prediction pred = Prediction.ParseValues(
             new string[] { (flatIndex + 1).ToString(), probs });

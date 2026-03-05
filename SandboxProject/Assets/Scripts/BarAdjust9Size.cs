@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class BarAdjust : MonoBehaviour
+public class BarAdjust9Size : MonoBehaviour
 {
     [SerializeField] private GameObject bar;
     [SerializeField] private GameObject face;
@@ -17,10 +17,10 @@ public class BarAdjust : MonoBehaviour
     }
 
     private IEnumerator DoStuff() {
-        RectTransform barTransform = bar.GetComponent<RectTransform>();
-        Vector3 position = barTransform.position;
-        Vector3 scale = barTransform.localScale;
-        barTransform.transform.localScale = new Vector3(scale.x, height, scale.y);
+        SpriteRenderer barSprite = bar.GetComponent<SpriteRenderer>();
+        Vector3 position = bar.transform.position;
+        Vector3 scale = bar.transform.localScale;
+        barSprite.size = new Vector2(barSprite.size.x, height);
         particles.transform.position = face.transform.position = new Vector3(position.x, bar.transform.GetChild(0).position.y, position.z);
 
         face.GetComponent<Image>().overrideSprite = faceExpression;

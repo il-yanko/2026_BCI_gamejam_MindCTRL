@@ -38,6 +38,14 @@ public class SceneBootstrapper : MonoBehaviour
     [Header("Art — Pitch Face Sprites (0 = Calm → 3 = Yelling)")]
     public Sprite[] FaceSprites = new Sprite[4];
 
+    [Header("Layout — Face Sprite Buttons")]
+    [Tooltip("Width of the face-sprite column (also controls visible sprite size)")]
+    public float FaceStackWidth   = 15f;
+    [Tooltip("Gap in pixels between the four face buttons")]
+    public float FaceButtonSpacing = 8f;
+    [Tooltip("Pixels from the top before the first face button")]
+    public int   FaceStackTopPad  = 0;
+
     // ── Character data ────────────────────────────────────────────────────────
     // Left-to-right order: Red, Green, Blue, Yellow
 
@@ -435,12 +443,12 @@ public class SceneBootstrapper : MonoBehaviour
         var noteStack = MakeContainer(mainArea.transform, "NoteStack");
         var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
         nsVl.childAlignment         = TextAnchor.UpperCenter;
-        nsVl.padding                = new RectOffset(0, 0, 0, 0);
-        nsVl.spacing                = 8;
+        nsVl.padding                = new RectOffset(0, 0, FaceStackTopPad, 0);
+        nsVl.spacing                = FaceButtonSpacing;
         nsVl.childForceExpandWidth  = true;
         nsVl.childForceExpandHeight = true;   // each button fills 1/4 of stack height
         var nsLe = noteStack.AddComponent<LayoutElement>();
-        nsLe.preferredWidth  = 15;
+        nsLe.preferredWidth  = FaceStackWidth;
         nsLe.flexibleHeight  = 1;
 
         pitchBtns = new PitchButtonPresenter[4];

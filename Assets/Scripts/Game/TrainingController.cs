@@ -55,7 +55,7 @@ public class TrainingController : MonoBehaviour
     {
         // Subscribe to every incoming prediction so evaluation can compare
         var handler = GetComponent<CharacterSelectionHandler>()
-                   ?? FindObjectOfType<CharacterSelectionHandler>();
+                   ?? FindAnyObjectByType<CharacterSelectionHandler>();
         if (handler != null)
             handler.OnIndexPredicted += idx => _lastPrediction = idx;
 
@@ -90,7 +90,7 @@ public class TrainingController : MonoBehaviour
 
     IEnumerator TrainingSequence()
     {
-        var bci = FindObjectOfType<MindCTRLBCIController>();
+        var bci = FindAnyObjectByType<MindCTRLBCIController>();
         if (!ValidateBCI(bci)) yield break;
 
         bci.StopContinuousTrials();
@@ -131,7 +131,7 @@ public class TrainingController : MonoBehaviour
 
     IEnumerator EvaluationSequence()
     {
-        var bci = FindObjectOfType<MindCTRLBCIController>();
+        var bci = FindAnyObjectByType<MindCTRLBCIController>();
         if (!ValidateBCI(bci)) yield break;
 
         bci.StopContinuousTrials();

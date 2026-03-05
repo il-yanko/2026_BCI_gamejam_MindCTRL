@@ -148,7 +148,7 @@ public class GameFlowController : MonoBehaviour
     private void UpdatePlayPauseLabel()
     {
         if (PlayPauseLabel != null)
-            PlayPauseLabel.text = _isPlaying ? "|| PAUSE" : ">  PLAY";
+            PlayPauseLabel.text = _isPlaying ? "|| PAUSE" : ">  SING";
     }
 
     private void RefreshAllButtons()

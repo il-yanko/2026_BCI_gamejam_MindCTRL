@@ -28,22 +28,30 @@ public class SceneBootstrapper : MonoBehaviour
     public AudioClip[] YellowVoiceClips = new AudioClip[4];
     public AudioClip[] GreenVoiceClips  = new AudioClip[4];
 
-    // ── Character data ────────────────────────────────────────────────────────
+    [Header("Art — Background / Foreground")]
+    public Sprite BackgroundSprite;
+    public Sprite ForegroundSprite;
 
-    static readonly string[] CharNames  = { "Red", "Blue", "Yellow", "Green" };
+    [Header("Art — Character Body Sprites (Red, Green, Blue, Yellow)")]
+    public Sprite[] BlobBodySprites = new Sprite[4];
+
+    [Header("Art — Pitch Face Sprites (0 = Calm → 3 = Yelling)")]
+    public Sprite[] FaceSprites = new Sprite[4];
+
+    // ── Character data ────────────────────────────────────────────────────────
+    // Left-to-right order: Red, Green, Blue, Yellow
+
+    static readonly string[] CharNames  = { "Red", "Green", "Blue", "Yellow" };
     static readonly Color[]  BlobColors =
     {
         new Color(0.90f, 0.22f, 0.22f),  // Red
+        new Color(0.22f, 0.75f, 0.30f),  // Green
         new Color(0.22f, 0.45f, 0.90f),  // Blue
         new Color(0.95f, 0.82f, 0.10f),  // Yellow
-        new Color(0.22f, 0.75f, 0.30f),  // Green
     };
 
-    // Pitch level display names — shown on the blob face and on the buttons
+    // Pitch level display names
     static readonly string[] PitchNames = { "Calm", "Happy", "Excited", "Yelling!" };
-
-    // ASCII face expressions for the 4 small note-head buttons (index 0=Calm → 3=Yelling)
-    static readonly string[] FaceTexts = { "- -\n ~", "^ ^\n u", "o o\n D", "O O\n !" };
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
@@ -184,9 +192,28 @@ public class SceneBootstrapper : MonoBehaviour
         out Text                     playLabel,
         out PlayPauseButtonPresenter playPausePresenter)
     {
-        var panel = MakePanel(root, "GamePanel", new Color(0.05f, 0.02f, 0.12f));
+        // Wrapper — shown/hidden by GameFlowController
+        var wrapper = MakeContainer(root, "GamePanel");
+        Stretch(wrapper);
+        wrapper.SetActive(false);
+
+        // Background layer (theater stage)
+        {
+            var bgGO  = new GameObject("Background");
+            bgGO.transform.SetParent(wrapper.transform, false);
+            var bgImg = bgGO.AddComponent<Image>();
+            if (BackgroundSprite != null)
+                bgImg.sprite = BackgroundSprite;
+            else
+                bgImg.color = new Color(0.05f, 0.02f, 0.12f);
+            bgImg.raycastTarget = false;
+            bgImg.preserveAspect = false;
+            Stretch(bgGO);
+        }
+
+        // Content panel (layout container, transparent so background shows through)
+        var panel = MakeContainer(wrapper.transform, "GameContent");
         Stretch(panel);
-        panel.SetActive(false);
 
         var vl = panel.AddComponent<VerticalLayoutGroup>();
         vl.childAlignment       = TextAnchor.UpperCenter;
@@ -242,7 +269,7 @@ public class SceneBootstrapper : MonoBehaviour
             new Color(0.28f, 0.28f, 0.40f), 24, 160, 58,
             () => GameFlowController.Instance?.ShowMainMenu());
 
-        var playGO = MakeButton(bar.transform, "PlayBtn", ">  PLAY",
+        var playGO = MakeButton(bar.transform, "PlayBtn", ">  SING",
             new Color(0.20f, 0.60f, 0.95f), 34, 250, 70,
             () => GameFlowController.Instance?.TogglePlay(), FontStyle.Bold);
 
@@ -253,7 +280,19 @@ public class SceneBootstrapper : MonoBehaviour
         playPausePresenter             = playGO.AddComponent<PlayPauseButtonPresenter>();
         playPausePresenter.ButtonImage = playGO.GetComponent<Image>();
 
-        gamePanel = panel;
+        // Foreground layer (audience silhouettes — rendered above blobs, pointer-transparent)
+        if (ForegroundSprite != null)
+        {
+            var fgGO  = new GameObject("Foreground");
+            fgGO.transform.SetParent(wrapper.transform, false);
+            var fgImg = fgGO.AddComponent<Image>();
+            fgImg.sprite         = ForegroundSprite;
+            fgImg.raycastTarget  = false;
+            fgImg.preserveAspect = false;
+            Stretch(fgGO);
+        }
+
+        gamePanel = wrapper;
     }
 
     // ── Training Panel ────────────────────────────────────────────────────────
@@ -261,7 +300,7 @@ public class SceneBootstrapper : MonoBehaviour
     GameObject BuildTrainingPanel(Transform root, out TrainingController tc)
     {
         // Resolve TrainingController added by BuildBCISystem
-        tc = FindObjectOfType<TrainingController>();
+        tc = FindAnyObjectByType<TrainingController>();
 
         var panel = MakePanel(root, "TrainingPanel", new Color(0.04f, 0.04f, 0.14f));
         Stretch(panel);
@@ -380,15 +419,10 @@ public class SceneBootstrapper : MonoBehaviour
         vl.childForceExpandHeight = false;
         col.AddComponent<LayoutElement>().flexibleWidth = 1;
 
-        // Character name
-        MakeText(col.transform, "Name", CharNames[charIdx].ToUpper(),
-            20, color, TextAnchor.MiddleCenter, FontStyle.Bold,
-            prefH: 26, flexW: true);
-
-        // ── Main area: big blob (left) + note-head stack (right) ──────────────
+        // ── Main area: note-head stack (left) + big blob (right) ─────────────
         var mainArea = MakeContainer(col.transform, "MainArea");
         var hl = mainArea.AddComponent<HorizontalLayoutGroup>();
-        hl.childAlignment       = TextAnchor.MiddleCenter;
+        hl.childAlignment       = TextAnchor.UpperCenter;
         hl.spacing              = 6;
         hl.childForceExpandWidth  = false;
         hl.childForceExpandHeight = true;
@@ -397,7 +431,23 @@ public class SceneBootstrapper : MonoBehaviour
         mainLe.flexibleHeight = 1;
         mainLe.minHeight      = 300;
 
-        // Big blob ─────────────────────────────────────────────────────────────
+        // Note-head stack on the LEFT — 4 buttons fill the same height as the blob column ─
+        var noteStack = MakeContainer(mainArea.transform, "NoteStack");
+        var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
+        nsVl.childAlignment         = TextAnchor.UpperCenter;
+        nsVl.padding                = new RectOffset(0, 0, 0, 0);
+        nsVl.spacing                = 8;
+        nsVl.childForceExpandWidth  = true;
+        nsVl.childForceExpandHeight = true;   // each button fills 1/4 of stack height
+        var nsLe = noteStack.AddComponent<LayoutElement>();
+        nsLe.preferredWidth  = 15;
+        nsLe.flexibleHeight  = 1;
+
+        pitchBtns = new PitchButtonPresenter[4];
+        for (int p = 3; p >= 0; p--)
+            pitchBtns[p] = BuildNoteHead(noteStack.transform, charIdx, p);
+
+        // Big blob on the RIGHT ────────────────────────────────────────────────
         // blobBox is controlled by the layout; BlobPresenter lives one level
         // below so the sway animation never fights the layout system.
         var blobBox = MakeContainer(mainArea.transform, "BlobBox");
@@ -412,54 +462,31 @@ public class SceneBootstrapper : MonoBehaviour
         brt.offsetMin = Vector2.zero;
         brt.offsetMax = Vector2.zero;
 
-        var circleGO  = new GameObject("Circle");
-        circleGO.transform.SetParent(blobGO.transform, false);
-        var circleImg = circleGO.AddComponent<Image>();
-        circleImg.color = color;
-        var crt = circleGO.GetComponent<RectTransform>();
-        crt.anchorMin = new Vector2(0.10f, 0.10f);
-        crt.anchorMax = new Vector2(0.90f, 0.90f);
-        crt.offsetMin = Vector2.zero;
-        crt.offsetMax = Vector2.zero;
-
-        var faceGO  = new GameObject("FaceLabel");
-        faceGO.transform.SetParent(blobGO.transform, false);
-        var faceTxt = faceGO.AddComponent<Text>();
-        faceTxt.font      = DefaultFont;
-        faceTxt.text      = FaceTexts[1];  // "^ ^\n u" at start (Happy)
-        faceTxt.fontSize  = 32;
-        faceTxt.fontStyle = FontStyle.Bold;
-        faceTxt.alignment = TextAnchor.MiddleCenter;
-        faceTxt.color     = new Color(1f, 1f, 1f, 0.90f);
-        var frt = faceGO.GetComponent<RectTransform>();
-        frt.anchorMin = Vector2.zero;
-        frt.anchorMax = Vector2.one;
-        frt.offsetMin = Vector2.zero;
-        frt.offsetMax = Vector2.zero;
+        // Blob body image — the full character sprite, no tint (already coloured)
+        var bodyGO  = new GameObject("BlobBody");
+        bodyGO.transform.SetParent(blobGO.transform, false);
+        var bodyImg = bodyGO.AddComponent<Image>();
+        bodyImg.color          = Color.white;
+        bodyImg.preserveAspect = true;
+        bodyImg.raycastTarget  = false;
+        if (BlobBodySprites != null && charIdx < BlobBodySprites.Length)
+            bodyImg.sprite = BlobBodySprites[charIdx];
+        else
+            bodyImg.color = color;   // solid-colour fallback if sprite not yet assigned
+        var brt2 = bodyGO.GetComponent<RectTransform>();
+        brt2.anchorMin = Vector2.zero;
+        brt2.anchorMax = Vector2.one;
+        brt2.offsetMin = Vector2.zero;
+        brt2.offsetMax = Vector2.zero;
 
         blobGO.AddComponent<AudioSource>();   // must exist before CharacterBlobPresenter.Awake()
         var blob = blobGO.AddComponent<CharacterBlobPresenter>();
-        blob.CharacterIndex = charIdx;
-        blob.CharacterName  = CharNames[charIdx];
-        blob.BlobColor      = color;
-        blob.BlobImage      = circleImg;
-        blob.FaceLabel      = faceTxt;
-        blob.SwayAmount      = 14f;
-        blob.BobAmount       = 7f;
-        blob.FaceExpressions = FaceTexts;
-
-        // Note-head stack (4 small blob heads, Yelling at top / Calm at bottom) ─
-        var noteStack = MakeContainer(mainArea.transform, "NoteStack");
-        var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
-        nsVl.childAlignment       = TextAnchor.MiddleCenter;
-        nsVl.spacing              = 4;
-        nsVl.childForceExpandWidth  = true;
-        nsVl.childForceExpandHeight = false;
-        noteStack.AddComponent<LayoutElement>().preferredWidth = 72;
-
-        pitchBtns = new PitchButtonPresenter[4];
-        for (int p = 3; p >= 0; p--)
-            pitchBtns[p] = BuildNoteHead(noteStack.transform, charIdx, p);
+        blob.CharacterIndex  = charIdx;
+        blob.CharacterName   = CharNames[charIdx];
+        blob.BlobColor       = color;
+        blob.BlobImage  = bodyImg;
+        blob.SwayAmount = 14f;
+        blob.BobAmount  = 7f;
 
         return blob;
     }
@@ -474,23 +501,26 @@ public class SceneBootstrapper : MonoBehaviour
         go.transform.SetParent(parent, false);
 
         var img = go.AddComponent<Image>();
+        img.sprite = RoundedRectSprite;
+        img.type   = Image.Type.Sliced;
+        img.color  = new Color(0.82f, 0.82f, 0.82f);   // light gray background
         var le  = go.AddComponent<LayoutElement>();
-        le.preferredWidth  = 68;
-        le.flexibleHeight  = 1;
-        le.minHeight       = 56;
+        le.flexibleWidth  = 1;
+        le.flexibleHeight = 1;
+        le.minHeight      = 30;
 
-        // Two-line ASCII face expression (eyes / mouth)
+        // Pitch-level face sprite (FaceLevel0–3, stacked: Yelling at top / Calm at bottom)
         var faceGO  = new GameObject("Face");
         faceGO.transform.SetParent(go.transform, false);
-        var faceTxt = faceGO.AddComponent<Text>();
-        faceTxt.font      = DefaultFont;
-        faceTxt.text      = FaceTexts[pitchIdx];
-        faceTxt.fontSize  = 13;
-        faceTxt.alignment = TextAnchor.MiddleCenter;
-        faceTxt.color     = Color.white;
+        var faceImg = faceGO.AddComponent<Image>();
+        faceImg.color          = Color.white;
+        faceImg.preserveAspect = true;
+        faceImg.raycastTarget  = false;
+        if (FaceSprites != null && pitchIdx < FaceSprites.Length && FaceSprites[pitchIdx] != null)
+            faceImg.sprite = FaceSprites[pitchIdx];
         var frt = faceGO.GetComponent<RectTransform>();
-        frt.anchorMin = Vector2.zero;
-        frt.anchorMax = Vector2.one;
+        frt.anchorMin = new Vector2(0.05f, 0.05f);
+        frt.anchorMax = new Vector2(0.95f, 0.95f);
         frt.offsetMin = Vector2.zero;
         frt.offsetMax = Vector2.zero;
 
@@ -499,7 +529,7 @@ public class SceneBootstrapper : MonoBehaviour
         presenter.CharacterIndex = charIdx;
         presenter.PitchIndex     = pitchIdx;
         presenter.ButtonImage    = img;
-        presenter.NormalColor    = new Color(blobColor.r * 0.35f, blobColor.g * 0.35f, blobColor.b * 0.35f);
+        presenter.NormalColor    = new Color(0.82f, 0.82f, 0.82f);   // light gray when idle
         presenter.ActiveColor    = new Color(blobColor.r,          blobColor.g,          blobColor.b);
 
         var btn = go.AddComponent<Button>();
@@ -534,6 +564,42 @@ public class SceneBootstrapper : MonoBehaviour
         rt.anchorMax = Vector2.one;
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
+    }
+
+    // ── Rounded-rect sprite (generated once, shared by all note-head buttons) ──
+
+    static Sprite _roundedRect;
+    static Sprite RoundedRectSprite
+    {
+        get
+        {
+            if (_roundedRect != null) return _roundedRect;
+            const int sz = 64, r = 14;
+            var tex = new Texture2D(sz, sz, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Bilinear;
+            var px = new Color32[sz * sz];
+            for (int y = 0; y < sz; y++)
+                for (int x = 0; x < sz; x++)
+                    px[y * sz + x] = InsideRR(x, y, sz, sz, r)
+                        ? new Color32(255, 255, 255, 255)
+                        : new Color32(0, 0, 0, 0);
+            tex.SetPixels32(px);
+            tex.Apply();
+            _roundedRect = Sprite.Create(tex, new Rect(0, 0, sz, sz),
+                new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect,
+                new Vector4(r, r, r, r));   // 9-slice border so corners stay round at any size
+            return _roundedRect;
+        }
+    }
+
+    static bool InsideRR(int x, int y, int w, int h, int r)
+    {
+        if (x >= r && x < w - r) return true;
+        if (y >= r && y < h - r) return true;
+        int cx = (x < r) ? r : w - r - 1;
+        int cy = (y < r) ? r : h - r - 1;
+        float dx = x - cx, dy = y - cy;
+        return dx * dx + dy * dy <= (float)r * r;
     }
 
     // Unity 6 no longer assigns a default font when Text is created via code.

@@ -36,13 +36,14 @@ public class TrainingController : MonoBehaviour
     public float CueDuration   = 2.5f;
 
     // ── Stimulus display names (indices 0-16) ─────────────────────────────────
+    // Order matches SceneBootstrapper left-to-right: Red(0) Green(1) Blue(2) Yellow(3)
     static readonly string[] Names =
     {
         "Red    Calm",    "Red    Happy",    "Red    Excited",    "Red    Yelling!",
+        "Green  Calm",    "Green  Happy",    "Green  Excited",    "Green  Yelling!",
         "Blue   Calm",    "Blue   Happy",    "Blue   Excited",    "Blue   Yelling!",
         "Yellow Calm",    "Yellow Happy",    "Yellow Excited",    "Yellow Yelling!",
-        "Green  Calm",    "Green  Happy",    "Green  Excited",    "Green  Yelling!",
-        "PLAY / PAUSE",
+        "SING / PAUSE",
     };
 
     // ── Runtime ───────────────────────────────────────────────────────────────

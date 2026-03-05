@@ -310,9 +310,26 @@ public class SceneBootstrapper : MonoBehaviour
         // Resolve TrainingController added by BuildBCISystem
         tc = FindAnyObjectByType<TrainingController>();
 
-        var panel = MakePanel(root, "TrainingPanel", new Color(0.04f, 0.04f, 0.14f));
+        var wrapper = MakeContainer(root, "TrainingPanel");
+        Stretch(wrapper);
+        wrapper.SetActive(false);
+
+        // Background layer — same theater image as the game panel
+        {
+            var bgGO  = new GameObject("Background");
+            bgGO.transform.SetParent(wrapper.transform, false);
+            var bgImg = bgGO.AddComponent<Image>();
+            if (BackgroundSprite != null)
+                bgImg.sprite = BackgroundSprite;
+            else
+                bgImg.color = new Color(0.04f, 0.04f, 0.14f);
+            bgImg.raycastTarget  = false;
+            bgImg.preserveAspect = false;
+            Stretch(bgGO);
+        }
+
+        var panel = MakeContainer(wrapper.transform, "TrainingContent");
         Stretch(panel);
-        panel.SetActive(false);
 
         var vl = panel.AddComponent<VerticalLayoutGroup>();
         vl.childAlignment         = TextAnchor.UpperCenter;

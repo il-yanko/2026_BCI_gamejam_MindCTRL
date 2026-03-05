@@ -491,7 +491,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Bci4Kids.BciEssentials.LSLFramework::BCIEssentials.LSLFramework.ResponseProvider
   StreamType: BCI_Essentials_Predictions
   _openOnStart: 0
-  LoggingMask: 0
+  LoggingMask: -1
   PollingPeriod: 0.1
 --- !u!4 &280108513
 Transform:

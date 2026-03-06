@@ -42,6 +42,14 @@ public class GameFlowController : MonoBehaviour
     private readonly int[] _currentPitch = { -1, -1, -1, -1 };  // -1 = nothing selected yet
     private bool _isPlaying;
 
+    /// <summary>
+    /// True while the training panel is active.
+    /// Predictions arriving via LSL are still recorded by TrainingController for
+    /// sham feedback, but must NOT change game state (blob pitches / play toggle).
+    /// Equivalent to the backend team's blockOutGoingLSL flag in P300Controller.
+    /// </summary>
+    public bool IsTrainingActive { get; private set; }
+
     public bool IsPlaying => _isPlaying;
 
     // ── Unity lifecycle ────────────────────────────────────────────────────────
@@ -66,6 +74,7 @@ public class GameFlowController : MonoBehaviour
 
     public void ShowMainMenu()
     {
+        IsTrainingActive = false;
         StopGame();
         SetPanelActive(MainMenuPanel, true);
         SetPanelActive(GamePanel,     false);
@@ -74,6 +83,7 @@ public class GameFlowController : MonoBehaviour
 
     public void StartNewGame()
     {
+        IsTrainingActive = false;
         SetPanelActive(MainMenuPanel, false);
         SetPanelActive(GamePanel,     true);
         SetPanelActive(TrainingPanel, false);
@@ -85,16 +95,17 @@ public class GameFlowController : MonoBehaviour
 
     public void StartTraining()
     {
+        IsTrainingActive = true;
         SetPanelActive(MainMenuPanel, false);
         SetPanelActive(GamePanel,     false);
-        SetPanelActive(TrainingPanel, true);
-        // Training logic TBD
+        SetPanelActive(TrainingPanel, true);   // full-screen — contains its own stimulus grid
     }
 
     // ── Play / Pause ───────────────────────────────────────────────────────────
 
     public void TogglePlay()
     {
+        if (IsTrainingActive) return;   // block during training — don't change game state
         if (_isPlaying) PauseGame();
         else            PlayGame();
     }
@@ -103,6 +114,7 @@ public class GameFlowController : MonoBehaviour
 
     public void SetPitch(int charIndex, int pitchIndex)
     {
+        if (IsTrainingActive) return;   // block during training — don't change game state
         if (charIndex  < 0 || charIndex  >= 4) return;
         if (pitchIndex < 0 || pitchIndex >= 4) return;
 

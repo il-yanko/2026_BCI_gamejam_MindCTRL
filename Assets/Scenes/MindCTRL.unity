@@ -134,7 +134,7 @@ GameObject:
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &101
 Transform:
@@ -233,22 +233,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SceneBootstrapper
   UseMockBCI: 1
   RedVoiceClips:
-  - {fileID: 0}
+  - {fileID: 8300000, guid: a37717487840f4300968bb17daaf15f6, type: 3}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   BlueVoiceClips:
-  - {fileID: 0}
+  - {fileID: 8300000, guid: c0b3d3d014d514e239f2e29f3ccd9126, type: 3}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   YellowVoiceClips:
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 627041f6082784d13936ba934d355ddf, type: 3}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   GreenVoiceClips:
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 12543e9986b0445b1ade6b57ea15b769, type: 3}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
@@ -264,6 +264,25 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 70434bc74db5c40b5bb7934a2673bbab, type: 3}
   - {fileID: 21300000, guid: 025b4152154a44748a105b681e2aec78, type: 3}
   - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  FaceStackWidth: 80
+  FaceButtonHeight: 80
+  FaceButtonSpacing: 50
+  FaceStackTopPad: 15
+  BlobColumnSpacing: 10
+  BlobAspectRatio: 0.25
+  FaceAspectRatio: 1
 --- !u!4 &912541543
 Transform:
   m_ObjectHideFlags: 0
@@ -274,7 +293,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.3, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

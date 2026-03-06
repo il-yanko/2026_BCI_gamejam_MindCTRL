@@ -37,6 +37,9 @@ public class CharacterBlobPresenter : MonoBehaviour
     [Header("Pitch Height")]
     public float PitchHeightStep = 25f;  // px the blob rises per pitch level
 
+    [Header("Pitch Scale — blob stretches taller for higher pitch")]
+    public float[] PitchScaleY = { 0.80f, 1.00f, 1.20f, 1.45f };  // Calm → Yelling
+
     [Header("Singing Animation")]
     public float SwaySpeed  = 2.5f;
     public float SwayAmount = 0.12f;   // world-units (or pixels in UI)
@@ -52,8 +55,10 @@ public class CharacterBlobPresenter : MonoBehaviour
     private Coroutine _singRoutine;
     private Coroutine _noteRoutine;
     private Coroutine _moveRoutine;
+    private Coroutine _scaleRoutine;
     private Vector3   _baseLocalPos;   // spawn position, unaffected by pitch
     private Vector3   _restLocalPos;   // base + pitch height offset
+    private float     _targetScaleY = 1f;
 
     static readonly string[] NoteGlyphs = { "♩", "♪", "♫", "♬" };
 
@@ -69,6 +74,10 @@ public class CharacterBlobPresenter : MonoBehaviour
 
         if (BlobImage != null) BlobImage.color = BlobColor;
 
+        // Snap to starting pitch scale immediately (no coroutine needed at Awake time)
+        _targetScaleY = ScaleForPitch(CurrentPitchIndex);
+        transform.localScale = new Vector3(1f, _targetScaleY, 1f);
+
         // Show starting face
         ApplyFaceSprite(CurrentPitchIndex);
     }
@@ -82,6 +91,7 @@ public class CharacterBlobPresenter : MonoBehaviour
         ApplyFaceSprite(CurrentPitchIndex);
         ApplyFaceText(CurrentPitchIndex);
         UpdateRestPos();
+        UpdatePitchScale();
         if (_isSinging) SwitchVoice();
     }
 
@@ -145,6 +155,34 @@ public class CharacterBlobPresenter : MonoBehaviour
         if (_singRoutine != null) { StopCoroutine(_singRoutine); _singRoutine = null; }
         if (_moveRoutine != null) { StopCoroutine(_moveRoutine); _moveRoutine = null; }
         transform.localPosition = _restLocalPos;
+    }
+
+    // ── Pitch scale ───────────────────────────────────────────────────────────
+
+    private float ScaleForPitch(int index) =>
+        (PitchScaleY != null && index >= 0 && index < PitchScaleY.Length)
+            ? PitchScaleY[index] : 1f;
+
+    private void UpdatePitchScale()
+    {
+        _targetScaleY = ScaleForPitch(CurrentPitchIndex);
+        if (_scaleRoutine != null) StopCoroutine(_scaleRoutine);
+        if (!gameObject.activeInHierarchy)
+            transform.localScale = new Vector3(1f, _targetScaleY, 1f);
+        else
+            _scaleRoutine = StartCoroutine(ScaleToPitch());
+    }
+
+    private IEnumerator ScaleToPitch()
+    {
+        while (Mathf.Abs(transform.localScale.y - _targetScaleY) > 0.005f)
+        {
+            float newY = Mathf.Lerp(transform.localScale.y, _targetScaleY, Time.deltaTime * 5f);
+            transform.localScale = new Vector3(1f, newY, 1f);
+            yield return null;
+        }
+        transform.localScale = new Vector3(1f, _targetScaleY, 1f);
+        _scaleRoutine = null;
     }
 
     // ── Pitch height ──────────────────────────────────────────────────────────

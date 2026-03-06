@@ -62,11 +62,10 @@ public class MindCTRLBCIController : MonoBehaviour
         _trial.MarkerWriter        = _markerWriter;
         _trial.PresenterCollection = _presenterCollection;
 
-        // Only the 16 pitch buttons go into the checkerboard grid (4×4).
-        // PlayPausePresenter is excluded — it falls outside the grid and
-        // must be triggered via a dedicated button press.
+        // All 17 stimuli: 16 pitch buttons (4×4 checkerboard) + Play/Pause as #17.
         foreach (var p in Presenters)
             if (p != null) _presenterCollection.Add(p);
+        if (PlayPausePresenter != null) _presenterCollection.Add(PlayPausePresenter);
 
         if (!GameConfig.Instance.useMockBCI)
             _responseProvider.SubscribePredictions(SelectionHandler.OnPrediction);
@@ -96,7 +95,7 @@ public class MindCTRLBCIController : MonoBehaviour
     /// </summary>
     public void MockPrediction(int flatIndex)
     {
-        int count = GridRows * GridColumns;
+        int count = _presenterCollection.Count;   // 17 when PlayPausePresenter is included
         string probs = BuildProbabilities(flatIndex, count);
         Prediction pred = Prediction.ParseValues(
             new string[] { (flatIndex + 1).ToString(), probs });

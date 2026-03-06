@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,11 +41,25 @@ public class SceneBootstrapper : MonoBehaviour
 
     [Header("Layout — Face Sprite Buttons")]
     [Tooltip("Width of the face-sprite column (also controls visible sprite size)")]
-    public float FaceStackWidth   = 15f;
+    public float FaceStackWidth    = 80f;
+    [Tooltip("Height of each face button in pixels — decrease to make buttons smaller and push them to the top")]
+    public float FaceButtonHeight  = 80f;
     [Tooltip("Gap in pixels between the four face buttons")]
     public float FaceButtonSpacing = 8f;
     [Tooltip("Pixels from the top before the first face button")]
-    public int   FaceStackTopPad  = 0;
+    public int   FaceStackTopPad   = 0;
+
+    [Header("Layout — Blob Area")]
+    [Tooltip("Horizontal gap in pixels between the four blob columns")]
+    public float BlobColumnSpacing = 14f;
+    [Tooltip("Width÷Height aspect ratio for each blob container (1 = square, 0.75 = portrait, 1.33 = landscape)")]
+    public float BlobAspectRatio   = 1f;
+    [Tooltip("Width÷Height aspect ratio for the face image inside each pitch button (1 = square)")]
+    public float FaceAspectRatio   = 1f;
+
+    // Shared list of all four NoteStack LayoutElements — populated in BuildBlobColumn(),
+    // used by each NoteStackResizeHandle so dragging any handle resizes all four at once.
+    private readonly List<LayoutElement> _noteStackElements = new List<LayoutElement>();
 
     // ── Character data ────────────────────────────────────────────────────────
     // Left-to-right order: Red, Green, Blue, Yellow
@@ -65,6 +80,8 @@ public class SceneBootstrapper : MonoBehaviour
 
     void Awake()
     {
+        Application.runInBackground = true;
+
         // 1. BCI / game-logic system — must run first so singletons are set
         //    before any UI component's Awake tries to call them.
         BuildBCISystem(
@@ -78,10 +95,10 @@ public class SceneBootstrapper : MonoBehaviour
         esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
 
         // 3. Canvas + all panels
-        var canvas        = BuildCanvas();
-        var mainMenu      = BuildMainMenu(canvas.transform);
-        var trainingPanel = BuildTrainingPanel(canvas.transform, out var tc);
+        var canvas   = BuildCanvas();
+        var mainMenu = BuildMainMenu(canvas.transform);
 
+        // GamePanel added first; TrainingPanel is a later sibling so it renders on top.
         BuildGamePanel(canvas.transform,
             out var gamePanel,
             out var blobs,
@@ -90,10 +107,30 @@ public class SceneBootstrapper : MonoBehaviour
             out var playLabel,
             out var playPausePresenter);
 
-        // 3. Wire voice clips
+        var trainingPanel = BuildTrainingPanel(canvas.transform, out var tc);
+
+        // 3. Wire voice clips — procedural funny voices fill any null slots
         var allClips = new[] { RedVoiceClips, BlueVoiceClips, YellowVoiceClips, GreenVoiceClips };
         for (int i = 0; i < 4; i++)
-            blobs[i].VoiceClips = allClips[i];
+        {
+            var clips = allClips[i];
+            if (clips == null || clips.Length < 4)
+            {
+                var filled = new AudioClip[4];
+                for (int p = 0; p < 4; p++)
+                    filled[p] = (clips != null && p < clips.Length && clips[p] != null)
+                        ? clips[p]
+                        : ProceduralVoiceClips.Generate(i, p);
+                clips = filled;
+            }
+            else
+            {
+                for (int p = 0; p < 4; p++)
+                    if (clips[p] == null)
+                        clips[p] = ProceduralVoiceClips.Generate(i, p);
+            }
+            blobs[i].VoiceClips = clips;
+        }
 
         // 4. Wire GameFlowController
         flow.MainMenuPanel   = mainMenu;
@@ -124,6 +161,7 @@ public class SceneBootstrapper : MonoBehaviour
         out CharacterSelectionHandler handler)
     {
         var go = new GameObject("BCISystem");
+        go.AddComponent<AudioListener>();       // exactly one listener in the scene
         go.AddComponent<GameConfig>();          // sets GameConfig.Instance
         GameConfig.Instance.useMockBCI = UseMockBCI;
         flow    = go.AddComponent<GameFlowController>();   // sets GameFlowController.Instance
@@ -239,10 +277,10 @@ public class SceneBootstrapper : MonoBehaviour
         var rowGO = MakeContainer(panel.transform, "BlobRow");
 
         var hl = rowGO.AddComponent<HorizontalLayoutGroup>();
-        hl.childAlignment       = TextAnchor.UpperCenter;
-        hl.spacing              = 14;
+        hl.childAlignment         = TextAnchor.UpperCenter;
+        hl.spacing                = BlobColumnSpacing;
         hl.childForceExpandWidth  = true;
-        hl.childForceExpandHeight = false;
+        hl.childForceExpandHeight = true;   // all 4 columns same height
         hl.padding = new RectOffset(6, 6, 0, 0);
 
         var rle = rowGO.AddComponent<LayoutElement>();
@@ -307,123 +345,193 @@ public class SceneBootstrapper : MonoBehaviour
 
     GameObject BuildTrainingPanel(Transform root, out TrainingController tc)
     {
-        // Resolve TrainingController added by BuildBCISystem
         tc = FindAnyObjectByType<TrainingController>();
 
+        // Dim cell colours — must match TrainingController.CellNormal[] and CellPlayPause
+        Color[] cellNormal =
+        {
+            new Color(0.36f, 0.08f, 0.08f),  // Red   (indices 0-3)
+            new Color(0.07f, 0.28f, 0.10f),  // Green (indices 4-7)
+            new Color(0.08f, 0.15f, 0.36f),  // Blue  (indices 8-11)
+            new Color(0.33f, 0.29f, 0.03f),  // Yellow(indices 12-15)
+        };
+        var cellPlayPauseCol = new Color(0.10f, 0.28f, 0.45f);
+
+        var gridCells = new UnityEngine.UI.Image[17];
+
+        // ── Root wrapper — full-screen; flow.TrainingPanel points here ─────────
         var wrapper = MakeContainer(root, "TrainingPanel");
         Stretch(wrapper);
         wrapper.SetActive(false);
 
-        // Background layer — same theater image as the game panel
+        // Opaque dark background
         {
             var bgGO  = new GameObject("Background");
             bgGO.transform.SetParent(wrapper.transform, false);
             var bgImg = bgGO.AddComponent<Image>();
-            if (BackgroundSprite != null)
-                bgImg.sprite = BackgroundSprite;
-            else
-                bgImg.color = new Color(0.04f, 0.04f, 0.14f);
-            bgImg.raycastTarget  = false;
-            bgImg.preserveAspect = false;
+            bgImg.color         = new Color(0.04f, 0.04f, 0.14f, 1f);
+            bgImg.raycastTarget = false;
             Stretch(bgGO);
         }
 
+        // Content layout
         var panel = MakeContainer(wrapper.transform, "TrainingContent");
         Stretch(panel);
-
         var vl = panel.AddComponent<VerticalLayoutGroup>();
         vl.childAlignment         = TextAnchor.UpperCenter;
-        vl.spacing                = 14;
-        vl.padding                = new RectOffset(40, 40, 24, 24);
+        vl.spacing                = 8;
+        vl.padding                = new RectOffset(20, 20, 14, 14);
         vl.childForceExpandWidth  = true;
         vl.childForceExpandHeight = false;
 
         // Header
         MakeText(panel.transform, "Header", "TRAINING MODE",
-            48, new Color(0.65f, 0.75f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold,
-            prefH: 62, flexW: true);
+            36, new Color(0.65f, 0.75f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold,
+            prefH: 46, flexW: true);
 
         MakeSeparator(panel.transform);
 
         // Cue box
         var cueBox = MakePanel(panel.transform, "CueBox", new Color(0.10f, 0.10f, 0.22f));
-        var cueLE  = cueBox.AddComponent<LayoutElement>();
-        cueLE.preferredHeight = 160;
-        cueLE.flexibleWidth   = 1;
-
+        cueBox.AddComponent<LayoutElement>().preferredHeight = 80;
         var cueText = MakeText(cueBox.transform, "CueLabel",
             "Press a button to begin.",
-            36, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold,
-            prefH: 160, flexW: true).GetComponent<Text>();
+            26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
         var cueRT = cueText.GetComponent<RectTransform>();
-        cueRT.anchorMin = Vector2.zero;
-        cueRT.anchorMax = Vector2.one;
-        cueRT.offsetMin = new Vector2(12, 8);
-        cueRT.offsetMax = new Vector2(-12, -8);
+        cueRT.anchorMin = Vector2.zero;  cueRT.anchorMax = Vector2.one;
+        cueRT.offsetMin = new Vector2(12, 6);  cueRT.offsetMax = new Vector2(-12, -6);
         if (tc != null) tc.CueLabel = cueText;
+
+        // ── Stimulus grid (expands to fill remaining vertical space) ───────────
+        var gridSection = MakeContainer(panel.transform, "GridSection");
+        gridSection.AddComponent<LayoutElement>().flexibleHeight = 1;
+        var gsVl = gridSection.AddComponent<VerticalLayoutGroup>();
+        gsVl.childAlignment         = TextAnchor.UpperCenter;
+        gsVl.spacing                = 6;
+        gsVl.childForceExpandWidth  = true;
+        gsVl.childForceExpandHeight = false;
+
+        // 4-column character grid
+        var charGrid = MakeContainer(gridSection.transform, "CharGrid");
+        charGrid.AddComponent<LayoutElement>().flexibleHeight = 1;
+        var cgHl = charGrid.AddComponent<HorizontalLayoutGroup>();
+        cgHl.childAlignment         = TextAnchor.UpperCenter;
+        cgHl.spacing                = 16;
+        cgHl.childForceExpandWidth  = true;
+        cgHl.childForceExpandHeight = false;
+
+        for (int c = 0; c < 4; c++)
+        {
+            var col = MakeContainer(charGrid.transform, $"Col_{CharNames[c]}");
+            col.AddComponent<LayoutElement>().flexibleWidth = 1;
+            var colVl = col.AddComponent<VerticalLayoutGroup>();
+            colVl.childAlignment         = TextAnchor.UpperCenter;
+            colVl.spacing                = 30;
+            colVl.childForceExpandWidth  = false;
+            colVl.childForceExpandHeight = false;
+
+            // Character name header
+            MakeText(col.transform, "CharName", CharNames[c],
+                16, BlobColors[c], TextAnchor.MiddleCenter, FontStyle.Bold,
+                prefH: 24, flexW: true);
+
+            // 4 pitch cells — top = Yelling (p=3), bottom = Calm (p=0), matching game panel order
+            for (int p = 3; p >= 0; p--)
+            {
+                int flatIdx = c * 4 + p;
+                var cellGO  = new GameObject($"Cell_{flatIdx}");
+                cellGO.transform.SetParent(col.transform, false);
+                var cellImg = cellGO.AddComponent<Image>();
+                cellImg.color         = cellNormal[c];
+                cellImg.raycastTarget = false;
+                var cellLE = cellGO.AddComponent<LayoutElement>();
+                cellLE.preferredWidth  = 60;
+                cellLE.preferredHeight = 60;
+                cellLE.minHeight       = 28;
+
+                var lblGO = MakeText(cellGO.transform, "Lbl", PitchNames[p],
+                    16, new Color(0.88f, 0.88f, 0.95f), TextAnchor.MiddleCenter);
+                var lrt = lblGO.GetComponent<RectTransform>();
+                lrt.anchorMin = Vector2.zero;  lrt.anchorMax = Vector2.one;
+                lrt.offsetMin = Vector2.zero;  lrt.offsetMax = Vector2.zero;
+
+                gridCells[flatIdx] = cellImg;
+            }
+        }
+
+        // Play/Pause cell — full width, index 16
+        var ppGO  = new GameObject("Cell_16");
+        ppGO.transform.SetParent(gridSection.transform, false);
+        var ppImg = ppGO.AddComponent<Image>();
+        ppImg.color         = cellPlayPauseCol;
+        ppImg.raycastTarget = false;
+        var ppLE = ppGO.AddComponent<LayoutElement>();
+        ppLE.preferredHeight = 44;
+        ppLE.flexibleWidth   = 1;
+        var ppLbl = MakeText(ppGO.transform, "Lbl", "SING  /  PAUSE",
+            17, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+        var ppLrt = ppLbl.GetComponent<RectTransform>();
+        ppLrt.anchorMin = Vector2.zero;  ppLrt.anchorMax = Vector2.one;
+        ppLrt.offsetMin = Vector2.zero;  ppLrt.offsetMax = Vector2.zero;
+        gridCells[16] = ppImg;
+
+        // Wire stimulus grid cells to TrainingController
+        if (tc != null) tc.TrainingGridCells = gridCells;
 
         // Progress label
         var progressText = MakeText(panel.transform, "ProgressLabel", "",
-            22, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleCenter,
-            prefH: 30, flexW: true).GetComponent<Text>();
+            20, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleCenter,
+            prefH: 26, flexW: true).GetComponent<Text>();
         if (tc != null) tc.ProgressLabel = progressText;
 
         // Result box
         var resultBox = MakePanel(panel.transform, "ResultBox", new Color(0.08f, 0.10f, 0.18f));
-        var resultLE  = resultBox.AddComponent<LayoutElement>();
-        resultLE.preferredHeight = 90;
-        resultLE.flexibleWidth   = 1;
-
+        resultBox.AddComponent<LayoutElement>().preferredHeight = 54;
         var resultText = MakeText(resultBox.transform, "ResultLabel", "",
-            22, new Color(0.6f, 1f, 0.6f), TextAnchor.MiddleCenter,
-            prefH: 90, flexW: true).GetComponent<Text>();
+            18, new Color(0.6f, 1f, 0.6f), TextAnchor.MiddleCenter).GetComponent<Text>();
         var rrt = resultText.GetComponent<RectTransform>();
-        rrt.anchorMin = Vector2.zero;
-        rrt.anchorMax = Vector2.one;
-        rrt.offsetMin = new Vector2(12, 6);
-        rrt.offsetMax = new Vector2(-12, -6);
+        rrt.anchorMin = Vector2.zero;  rrt.anchorMax = Vector2.one;
+        rrt.offsetMin = new Vector2(12, 4);  rrt.offsetMax = new Vector2(-12, -4);
         if (tc != null) tc.ResultLabel = resultText;
 
         MakeSeparator(panel.transform);
 
         // Button bar
         var bar = MakeContainer(panel.transform, "ButtonBar");
+        bar.AddComponent<LayoutElement>().preferredHeight = 56;
         var bhl = bar.AddComponent<HorizontalLayoutGroup>();
         bhl.childAlignment         = TextAnchor.MiddleCenter;
-        bhl.spacing                = 20;
+        bhl.spacing                = 16;
         bhl.childForceExpandWidth  = false;
         bhl.childForceExpandHeight = false;
-        bar.AddComponent<LayoutElement>().preferredHeight = 70;
 
         var trainGO = MakeButton(bar.transform, "TrainBtn", "START TRAINING",
-            new Color(0.20f, 0.55f, 0.85f), 26, 260, 60, () => { }, FontStyle.Bold);
-        var trainBtn = trainGO.GetComponent<Button>();
-        if (tc != null) tc.StartTrainBtn = trainBtn;
+            new Color(0.20f, 0.55f, 0.85f), 22, 240, 50, () => { }, FontStyle.Bold);
+        if (tc != null) tc.StartTrainBtn = trainGO.GetComponent<Button>();
 
-        var evalGO = MakeButton(bar.transform, "EvalBtn", "START EVALUATION",
-            new Color(0.20f, 0.70f, 0.35f), 26, 280, 60, () => { }, FontStyle.Bold);
-        var evalBtn = evalGO.GetComponent<Button>();
-        if (tc != null) tc.StartEvalBtn = evalBtn;
+        var evalGO  = MakeButton(bar.transform, "EvalBtn", "START EVALUATION",
+            new Color(0.20f, 0.70f, 0.35f), 22, 260, 50, () => { }, FontStyle.Bold);
+        if (tc != null) tc.StartEvalBtn = evalGO.GetComponent<Button>();
 
-        var stopGO = MakeButton(bar.transform, "StopBtn", "STOP",
-            new Color(0.65f, 0.18f, 0.18f), 24, 130, 60, () => { });
+        var stopGO  = MakeButton(bar.transform, "StopBtn", "STOP",
+            new Color(0.65f, 0.18f, 0.18f), 20, 110, 50, () => { });
         var stopBtn = stopGO.GetComponent<Button>();
         stopBtn.interactable = false;
         if (tc != null) tc.StopBtn = stopBtn;
 
         // Back button
         var backBar = MakeContainer(panel.transform, "BackBar");
+        backBar.AddComponent<LayoutElement>().preferredHeight = 42;
         var bbhl = backBar.AddComponent<HorizontalLayoutGroup>();
         bbhl.childAlignment         = TextAnchor.MiddleCenter;
         bbhl.childForceExpandWidth  = false;
         bbhl.childForceExpandHeight = false;
-        backBar.AddComponent<LayoutElement>().preferredHeight = 52;
-
         MakeButton(backBar.transform, "BackBtn", "< MAIN MENU",
-            new Color(0.28f, 0.28f, 0.40f), 22, 220, 48,
+            new Color(0.28f, 0.28f, 0.40f), 20, 200, 40,
             () => GameFlowController.Instance?.ShowMainMenu());
 
-        return panel;
+        // Return wrapper (not panel) so flow.TrainingPanel.SetActive() shows/hides the full overlay
+        return wrapper;
     }
 
     // ── Blob column ───────────────────────────────────────────────────────────
@@ -454,19 +562,33 @@ public class SceneBootstrapper : MonoBehaviour
         var mainLe = mainArea.AddComponent<LayoutElement>();
         mainLe.flexibleWidth  = 1;
         mainLe.flexibleHeight = 1;
-        mainLe.minHeight      = 300;
+        // No minHeight — FaceButtonHeight controls button size; blob stretches freely.
 
-        // Note-head stack on the LEFT — 4 buttons fill the same height as the blob column ─
+        // Note-head stack on the LEFT — buttons sit at the top, sized by FaceButtonHeight ──
         var noteStack = MakeContainer(mainArea.transform, "NoteStack");
         var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
         nsVl.childAlignment         = TextAnchor.UpperCenter;
         nsVl.padding                = new RectOffset(0, 0, FaceStackTopPad, 0);
         nsVl.spacing                = FaceButtonSpacing;
         nsVl.childForceExpandWidth  = true;
-        nsVl.childForceExpandHeight = true;   // each button fills 1/4 of stack height
+        nsVl.childForceExpandHeight = false;  // buttons use preferredHeight; reduce to push up
         var nsLe = noteStack.AddComponent<LayoutElement>();
         nsLe.preferredWidth  = FaceStackWidth;
         nsLe.flexibleHeight  = 1;
+
+        // Register for the shared resize handle and add the drag strip
+        _noteStackElements.Add(nsLe);
+
+        var handleGO = new GameObject("ResizeHandle");
+        handleGO.transform.SetParent(noteStack.transform, false);
+        handleGO.AddComponent<Image>();                                   // colour set by NoteStackResizeHandle.Awake()
+        handleGO.AddComponent<LayoutElement>().ignoreLayout = true;       // excluded from VL layout
+        var handleRT = handleGO.GetComponent<RectTransform>();
+        handleRT.anchorMin = new Vector2(1f, 0f);                         // anchored to right edge
+        handleRT.anchorMax = Vector2.one;
+        handleRT.offsetMin = new Vector2(-8f, 0f);                        // 8 px wide
+        handleRT.offsetMax = Vector2.zero;
+        handleGO.AddComponent<NoteStackResizeHandle>().NoteStacks = _noteStackElements;
 
         pitchBtns = new PitchButtonPresenter[4];
         for (int p = 3; p >= 0; p--)
@@ -482,10 +604,14 @@ public class SceneBootstrapper : MonoBehaviour
 
         var blobGO = MakeContainer(blobBox.transform, "BlobPresenter");
         var brt = (RectTransform)blobGO.transform;
-        brt.anchorMin = Vector2.zero;
-        brt.anchorMax = Vector2.one;
+        brt.anchorMin = new Vector2(0.5f, 0.5f);
+        brt.anchorMax = new Vector2(0.5f, 0.5f);
+        brt.pivot     = new Vector2(0.5f, 0.5f);
         brt.offsetMin = Vector2.zero;
         brt.offsetMax = Vector2.zero;
+        var arf = blobGO.AddComponent<AspectRatioFitter>();
+        arf.aspectMode  = AspectRatioFitter.AspectMode.FitInParent;
+        arf.aspectRatio = BlobAspectRatio;
 
         // Blob body image — the full character sprite, no tint (already coloured)
         var bodyGO  = new GameObject("BlobBody");
@@ -530,9 +656,8 @@ public class SceneBootstrapper : MonoBehaviour
         img.type   = Image.Type.Sliced;
         img.color  = new Color(0.82f, 0.82f, 0.82f);   // light gray background
         var le  = go.AddComponent<LayoutElement>();
-        le.flexibleWidth  = 1;
-        le.flexibleHeight = 1;
-        le.minHeight      = 30;
+        le.flexibleWidth   = 1;
+        le.preferredHeight = FaceButtonHeight;   // no minHeight — freely resizable
 
         // Pitch-level face sprite (FaceLevel0–3, stacked: Yelling at top / Calm at bottom)
         var faceGO  = new GameObject("Face");
@@ -544,10 +669,14 @@ public class SceneBootstrapper : MonoBehaviour
         if (FaceSprites != null && pitchIdx < FaceSprites.Length && FaceSprites[pitchIdx] != null)
             faceImg.sprite = FaceSprites[pitchIdx];
         var frt = faceGO.GetComponent<RectTransform>();
-        frt.anchorMin = new Vector2(0.05f, 0.05f);
-        frt.anchorMax = new Vector2(0.95f, 0.95f);
+        frt.anchorMin = new Vector2(0.5f, 0.5f);
+        frt.anchorMax = new Vector2(0.5f, 0.5f);
+        frt.pivot     = new Vector2(0.5f, 0.5f);
         frt.offsetMin = Vector2.zero;
         frt.offsetMax = Vector2.zero;
+        var farf = faceGO.AddComponent<AspectRatioFitter>();
+        farf.aspectMode  = AspectRatioFitter.AspectMode.FitInParent;
+        farf.aspectRatio = FaceAspectRatio;
 
         // Dim blob colour when not active; full blob colour when active
         var presenter = go.AddComponent<PitchButtonPresenter>();
@@ -666,7 +795,9 @@ public class SceneBootstrapper : MonoBehaviour
         go.transform.SetParent(parent, false);
 
         var img = go.AddComponent<Image>();
-        img.color = bg;
+        img.sprite = RoundedRectSprite;
+        img.type   = Image.Type.Sliced;
+        img.color  = bg;
 
         var btn = go.AddComponent<Button>();
         btn.targetGraphic = img;

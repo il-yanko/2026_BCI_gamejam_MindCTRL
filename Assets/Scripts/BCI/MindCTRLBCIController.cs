@@ -76,6 +76,9 @@ public class MindCTRLBCIController : MonoBehaviour
     public void StartContinuousTrials()
     {
         if (_continuousRoutine != null) return;
+        // Clear any stuck trial from a previous session (e.g., after training)
+        if (_trial != null && _trial.IsRunning) _trial.Interrupt();
+        Debug.Log("[BCI] StartContinuousTrials — launching trial loop");
         _continuousRoutine = StartCoroutine(RunContinuous());
     }
 
@@ -124,7 +127,11 @@ public class MindCTRLBCIController : MonoBehaviour
     {
         while (true)
         {
-            if (!_trial.IsRunning) _trial.StartTestingTrial();
+            if (!_trial.IsRunning)
+            {
+                Debug.Log("[BCI] Starting testing trial");
+                _trial.StartTestingTrial();
+            }
             yield return _trial.AwaitCompletion();
             yield return new WaitForSeconds(TrialPauseDuration);
         }

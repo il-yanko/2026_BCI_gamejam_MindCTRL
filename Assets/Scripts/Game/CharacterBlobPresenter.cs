@@ -72,8 +72,6 @@ public class CharacterBlobPresenter : MonoBehaviour
         _baseLocalPos = transform.localPosition;
         _restLocalPos = _baseLocalPos;
 
-        if (BlobImage != null) BlobImage.color = BlobColor;
-
         // Snap to starting pitch scale immediately (no coroutine needed at Awake time)
         _targetScaleY = ScaleForPitch(CurrentPitchIndex);
         transform.localScale = new Vector3(1f, _targetScaleY, 1f);

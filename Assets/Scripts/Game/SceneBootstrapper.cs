@@ -622,8 +622,6 @@ public class SceneBootstrapper : MonoBehaviour
         bodyImg.raycastTarget  = false;
         if (BlobBodySprites != null && charIdx < BlobBodySprites.Length)
             bodyImg.sprite = BlobBodySprites[charIdx];
-        else
-            bodyImg.color = color;   // solid-colour fallback if sprite not yet assigned
         var brt2 = bodyGO.GetComponent<RectTransform>();
         brt2.anchorMin = Vector2.zero;
         brt2.anchorMax = Vector2.one;

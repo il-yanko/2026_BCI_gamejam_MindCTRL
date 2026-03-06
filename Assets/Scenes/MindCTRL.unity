@@ -233,25 +233,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SceneBootstrapper
   UseMockBCI: 0
   RedVoiceClips:
+  - {fileID: 8300000, guid: 26ad4214419d0025ea97f5f0b3a4ab90, type: 3}
   - {fileID: 8300000, guid: a37717487840f4300968bb17daaf15f6, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 4a67a2e6c0ac6ba3db254dece0234e51, type: 3}
+  - {fileID: 8300000, guid: 049f6482ee0bc24aca95708c0e6774cf, type: 3}
   BlueVoiceClips:
+  - {fileID: 8300000, guid: 84a4c9ed7ea44236590a71ea48ee5991, type: 3}
   - {fileID: 8300000, guid: c0b3d3d014d514e239f2e29f3ccd9126, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 4f927652dcc25546a9b35577a7a1201c, type: 3}
+  - {fileID: 8300000, guid: 723a63dd80fc8c010adad9ec34fad9f1, type: 3}
   YellowVoiceClips:
+  - {fileID: 8300000, guid: 1dc14d3e58b6eb2278c9680d1c001b71, type: 3}
   - {fileID: 8300000, guid: 627041f6082784d13936ba934d355ddf, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 274a0c45c2f03f581bfd371669c6b5ef, type: 3}
+  - {fileID: 8300000, guid: b14a9efa5a45e72bc8d990d472773186, type: 3}
   GreenVoiceClips:
+  - {fileID: 8300000, guid: c081ad770792c312a947be203742ef0f, type: 3}
   - {fileID: 8300000, guid: 12543e9986b0445b1ade6b57ea15b769, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 8185347592c84f799a770eecabf0c3fc, type: 3}
+  - {fileID: 8300000, guid: ddd02f28e6c4451b29834cc7f29aaa35, type: 3}
   BackgroundSprite: {fileID: 21300000, guid: aabb0001cc111111aabbcc1234abcdef, type: 3}
   ForegroundSprite: {fileID: 21300000, guid: e76e8dfeca2c74a15aedbcd45de0cac8, type: 3}
   BlobBodySprites:

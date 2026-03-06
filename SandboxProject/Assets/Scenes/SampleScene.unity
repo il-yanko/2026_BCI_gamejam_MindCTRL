@@ -879,6 +879,11 @@ MonoBehaviour:
   sound: {fileID: 1637756860}
   particles: {fileID: 1727484208}
   pitch: 1.5
+--- !u!1 &1449225434 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4726221566635374741, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+  m_PrefabInstance: {fileID: 1637756858}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1555085522
 GameObject:
   m_ObjectHideFlags: 0
@@ -1084,7 +1089,7 @@ PrefabInstance:
     - target: {fileID: 1804246304882567206, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1249668858}
+      objectReference: {fileID: 1637756862}
     - target: {fileID: 1804246304882567206, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
@@ -1095,7 +1100,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1804246304882567206, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Trigger
+      value: PlayLoop
       objectReference: {fileID: 0}
     - target: {fileID: 1804246304882567206, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
@@ -1103,7 +1108,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1804246304882567206, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: BarLevelButton, Assembly-CSharp
+      value: SegmentedAudioPlayer, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 1804246304882567206, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
@@ -1248,7 +1253,7 @@ PrefabInstance:
     - target: {fileID: 4216613936713931408, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 2120384104}
+      objectReference: {fileID: 1637756862}
     - target: {fileID: 4216613936713931408, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
@@ -1259,7 +1264,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4216613936713931408, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Trigger
+      value: Stop
       objectReference: {fileID: 0}
     - target: {fileID: 4216613936713931408, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
@@ -1267,7 +1272,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4216613936713931408, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: BarLevelButton, Assembly-CSharp
+      value: SegmentedAudioPlayer, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 4216613936713931408, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
@@ -1356,6 +1361,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6340123533659976365, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1756576018}
+    - targetCorrespondingSourceObject: {fileID: 4726221566635374741, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1637756862}
   m_SourcePrefab: {fileID: 100100000, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
 --- !u!224 &1637756859 stripped
 RectTransform:
@@ -1367,6 +1375,22 @@ AudioSource:
   m_CorrespondingSourceObject: {fileID: 1630710128227414953, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}
   m_PrefabInstance: {fileID: 1637756858}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1637756862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1449225434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 225d9efd478666d52940bdb9b694d2da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SegmentedAudioPlayer
+  start: {fileID: 8300000, guid: b80db54d66e269449b0218608c39d202, type: 3}
+  middle: {fileID: 8300000, guid: 89326d46fd1435a0e93af4f38d9f4410, type: 3}
+  end: {fileID: 8300000, guid: bfa24c1d85541c46182c93bf70055b49, type: 3}
+  loop: 0
 --- !u!198 &1727484208 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 7571510577900392574, guid: ece497f0c47313c3a92b58f6d40c5e57, type: 3}

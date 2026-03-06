@@ -239,7 +239,7 @@ public class TrainingController : MonoBehaviour
                 var visual = StartCoroutine(TrainingGridCellFlash(bci));
                 yield return bci.RunTestingTrialCoroutine();
                 StopCoroutine(visual);
-                for (int i = 0; i < 17; i++) ResetCell(i);
+                for (int j = 0; j < 17; j++) ResetCell(j);
             }
 
             yield return null;   // one frame for OnPrediction to fire

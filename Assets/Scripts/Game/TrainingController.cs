@@ -70,6 +70,27 @@ public class TrainingController : MonoBehaviour
 
     void Start()
     {
+        // Mirror real trial flashes onto the training grid cells via presenter events
+        var bci = GetComponent<MindCTRLBCIController>()
+               ?? FindAnyObjectByType<MindCTRLBCIController>();
+        if (bci != null)
+        {
+            for (int i = 0; i < bci.Presenters.Length && i < 16; i++)
+            {
+                var p = bci.Presenters[i];
+                if (p == null) continue;
+                int idx = i;
+                p.OnDisplayStarted += () => HighlightCell(idx, p.FlashColor);
+                p.OnDisplayEnded   += () => ResetCell(idx);
+            }
+            if (bci.PlayPausePresenter != null)
+            {
+                var pp = bci.PlayPausePresenter;
+                pp.OnDisplayStarted += () => HighlightCell(16, pp.FlashColor);
+                pp.OnDisplayEnded   += () => ResetCell(16);
+            }
+        }
+
         // Subscribe to every incoming prediction so evaluation can compare
         var handler = GetComponent<CharacterSelectionHandler>()
                    ?? FindAnyObjectByType<CharacterSelectionHandler>();
@@ -149,13 +170,7 @@ public class TrainingController : MonoBehaviour
                     bci.MockPrediction(target);
                 }
                 else
-                {
-                    // Run grid visual in parallel so training cells flash during real BCI trial
-                    var visual = StartCoroutine(TrainingGridCellFlash(bci));
                     yield return bci.RunTrainingTrial(target);
-                    StopCoroutine(visual);
-                    for (int i = 0; i < 17; i++) ResetCell(i);
-                }
 
                 yield return null;  // one frame so OnIndexPredicted can fire
 
@@ -235,12 +250,7 @@ public class TrainingController : MonoBehaviour
                 bci.MockPrediction(target);
             }
             else
-            {
-                var visual = StartCoroutine(TrainingGridCellFlash(bci));
                 yield return bci.RunTestingTrialCoroutine();
-                StopCoroutine(visual);
-                for (int j = 0; j < 17; j++) ResetCell(j);
-            }
 
             yield return null;   // one frame for OnPrediction to fire
 
@@ -316,51 +326,13 @@ public class TrainingController : MonoBehaviour
         return null;
     }
 
-    // ── Training grid visual flash (real BCI mode) ────────────────────────────
-
-    /// <summary>
-    /// Highlights training grid cells in the checkerboard pattern to give visual
-    /// feedback during real BCI trials. Does NOT call StartStimulusDisplay —
-    /// the real trial handles that. Runs as a background coroutine alongside the trial.
-    /// </summary>
-    IEnumerator TrainingGridCellFlash(MindCTRLBCIController bci)
-    {
-        int   reps    = bci != null ? bci.FlashesPerOption : 10;
-        float onTime  = bci != null ? bci.OnTime           : 0.10f;
-        float offTime = bci != null ? bci.OffTime          : 0.075f;
-
-        Color flashCol = (bci != null && bci.Presenters.Length > 0 && bci.Presenters[0] != null)
-            ? bci.Presenters[0].FlashColor
-            : new Color(1f, 1f, 0.2f, 1f);
-
-        while (true)   // loop until StopCoroutine is called by the caller
-        {
-            for (int group = 0; group < 2; group++)
-            {
-                for (int i = 0; i < 16; i++)
-                {
-                    int c = i / 4, p = i % 4;
-                    if ((c + p) % 2 == group) HighlightCell(i, flashCol);
-                    else                      ResetCell(i);
-                }
-                bool ppOn = group == 0;
-                if (ppOn) HighlightCell(16, flashCol); else ResetCell(16);
-                yield return new WaitForSeconds(onTime);
-
-                for (int i = 0; i < 17; i++) ResetCell(i);
-                yield return new WaitForSeconds(offTime);
-            }
-        }
-    }
-
     // ── Mock checkerboard flash ───────────────────────────────────────────────
 
     /// <summary>
-    /// Mirrors CheckerboardFlashTrialBehaviour exactly:
-    ///   • Calls StartStimulusDisplay() / EndStimulusDisplay() on the actual
-    ///     PitchButtonPresenter objects — the same methods the real flash uses.
-    ///   • Simultaneously paints the training grid cells with the presenter's
-    ///     FlashColor so the flash is visible in the training panel.
+    /// Drives the same StartStimulusDisplay / EndStimulusDisplay calls that
+    /// CheckerboardFlashTrialBehaviour makes in real mode.  The presenter events
+    /// (OnDisplayStarted / OnDisplayEnded) propagate those calls to the training
+    /// grid cells automatically — no direct HighlightCell calls needed here.
     ///
     /// Groups per repetition — true checkerboard (matches BlackWhiteMatrixFactory):
     ///   0 — "black" cells where (charIndex + pitchIndex) % 2 == 0
@@ -368,14 +340,9 @@ public class TrainingController : MonoBehaviour
     /// </summary>
     IEnumerator MockFlashAnimation(MindCTRLBCIController bci)
     {
-        int   reps     = bci != null ? bci.FlashesPerOption : 10;
-        float onTime   = bci != null ? bci.OnTime           : 0.10f;
-        float offTime  = bci != null ? bci.OffTime          : 0.075f;
-
-        // Read FlashColor from the first presenter so training matches the game exactly
-        Color flashCol = (bci != null && bci.Presenters.Length > 0 && bci.Presenters[0] != null)
-            ? bci.Presenters[0].FlashColor
-            : new Color(1f, 1f, 0.2f, 1f);
+        int   reps    = bci != null ? bci.FlashesPerOption : 10;
+        float onTime  = bci != null ? bci.OnTime           : 0.10f;
+        float offTime = bci != null ? bci.OffTime          : 0.075f;
 
         for (int rep = 0; rep < reps; rep++)
         {
@@ -383,40 +350,20 @@ public class TrainingController : MonoBehaviour
             {
                 for (int i = 0; i < 16; i++)
                 {
-                    int  c  = i / 4, p = i % 4;
-                    bool on = (c + p) % 2 == group;   // true checkerboard
-
-                    if (on)
-                    {
-                        HighlightCell(i, flashCol);                      // training grid (visible)
-                        bci?.Presenters[i]?.StartStimulusDisplay();      // same method as the game
-                    }
-                    else
-                    {
-                        ResetCell(i);
-                        bci?.Presenters[i]?.EndStimulusDisplay();
-                    }
+                    bool on = ((i / 4) + (i % 4)) % 2 == group;
+                    if (on) bci?.Presenters[i]?.StartStimulusDisplay();
+                    else    bci?.Presenters[i]?.EndStimulusDisplay();
                 }
-                // Play/Pause (index 16): conceptually (row=4, col=0) → (4+0)%2==0 → black (group 0)
-                bool ppOn = group == 0;
-                if (ppOn) { HighlightCell(16, flashCol); bci?.PlayPausePresenter?.StartStimulusDisplay(); }
-                else      { ResetCell(16);               bci?.PlayPausePresenter?.EndStimulusDisplay(); }
+                if (group == 0) bci?.PlayPausePresenter?.StartStimulusDisplay();
+                else            bci?.PlayPausePresenter?.EndStimulusDisplay();
 
                 yield return new WaitForSeconds(onTime);
 
-                // Inter-flash gap — all off
-                for (int i = 0; i < 16; i++)
-                {
-                    ResetCell(i);
-                    bci?.Presenters[i]?.EndStimulusDisplay();
-                }
-                ResetCell(16);
+                for (int i = 0; i < 16; i++) bci?.Presenters[i]?.EndStimulusDisplay();
                 bci?.PlayPausePresenter?.EndStimulusDisplay();
                 yield return new WaitForSeconds(offTime);
             }
         }
-
-        for (int i = 0; i < 17; i++) ResetCell(i);
     }
 
     // ── Training grid helpers ─────────────────────────────────────────────────

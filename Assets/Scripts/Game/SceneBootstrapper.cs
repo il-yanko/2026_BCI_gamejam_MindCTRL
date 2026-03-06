@@ -415,7 +415,7 @@ public class SceneBootstrapper : MonoBehaviour
         var charGrid = MakeContainer(gridSection.transform, "CharGrid");
         charGrid.AddComponent<LayoutElement>().flexibleHeight = 1;
         var cgHl = charGrid.AddComponent<HorizontalLayoutGroup>();
-        cgHl.childAlignment         = TextAnchor.UpperCenter;
+        cgHl.childAlignment         = TextAnchor.MiddleCenter;
         cgHl.spacing                = 16;
         cgHl.childForceExpandWidth  = true;
         cgHl.childForceExpandHeight = false;
@@ -425,8 +425,8 @@ public class SceneBootstrapper : MonoBehaviour
             var col = MakeContainer(charGrid.transform, $"Col_{CharNames[c]}");
             col.AddComponent<LayoutElement>().flexibleWidth = 1;
             var colVl = col.AddComponent<VerticalLayoutGroup>();
-            colVl.childAlignment         = TextAnchor.UpperCenter;
-            colVl.spacing                = 30;
+            colVl.childAlignment         = TextAnchor.MiddleCenter;
+            colVl.spacing                = 12;
             colVl.childForceExpandWidth  = false;
             colVl.childForceExpandHeight = false;
 
@@ -445,9 +445,9 @@ public class SceneBootstrapper : MonoBehaviour
                 cellImg.color         = cellNormal[c];
                 cellImg.raycastTarget = false;
                 var cellLE = cellGO.AddComponent<LayoutElement>();
-                cellLE.preferredWidth  = 60;
-                cellLE.preferredHeight = 60;
-                cellLE.minHeight       = 28;
+                cellLE.preferredWidth  = 90;
+                cellLE.preferredHeight = 90;
+                cellLE.minHeight       = 40;
 
                 var lblGO = MakeText(cellGO.transform, "Lbl", PitchNames[p],
                     16, new Color(0.88f, 0.88f, 0.95f), TextAnchor.MiddleCenter);

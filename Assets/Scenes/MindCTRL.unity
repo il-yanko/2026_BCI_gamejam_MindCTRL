@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42205bd9b33f84215b9b0c7ae8c94d95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneBootstrapper
-  UseMockBCI: 1
+  UseMockBCI: 0
   RedVoiceClips:
   - {fileID: 8300000, guid: a37717487840f4300968bb17daaf15f6, type: 3}
   - {fileID: 0}

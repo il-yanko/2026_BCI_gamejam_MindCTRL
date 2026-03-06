@@ -34,12 +34,20 @@ public class PlayPauseButtonPresenter : StimulusPresentationBehaviour
 
     // ── StimulusPresentationBehaviour ─────────────────────────────────────────
 
+    public event System.Action OnDisplayStarted;
+    public event System.Action OnDisplayEnded;
+
     public override void StartStimulusDisplay()
     {
         if (ButtonImage != null) ButtonImage.color = FlashColor;
+        OnDisplayStarted?.Invoke();
     }
 
-    public override void EndStimulusDisplay() => Refresh();
+    public override void EndStimulusDisplay()
+    {
+        OnDisplayEnded?.Invoke();
+        Refresh();
+    }
 
     public override void Select()
     {

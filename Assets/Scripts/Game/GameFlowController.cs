@@ -96,6 +96,7 @@ public class GameFlowController : MonoBehaviour
     public void StartTraining()
     {
         IsTrainingActive = true;
+        BCIController?.StopContinuousTrials();  // ensure game trials stop before training begins
         SetPanelActive(MainMenuPanel, false);
         SetPanelActive(GamePanel,     false);
         SetPanelActive(TrainingPanel, true);   // full-screen — contains its own stimulus grid

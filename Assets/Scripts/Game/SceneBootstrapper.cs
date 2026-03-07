@@ -329,7 +329,11 @@ public class SceneBootstrapper : MonoBehaviour
 
         // Content panel (layout container, transparent so background shows through)
         var panel = MakeContainer(wrapper.transform, "GameContent");
-        Stretch(panel);
+        var panelRT = panel.GetComponent<RectTransform>();
+        panelRT.anchorMin = Vector2.zero;
+        panelRT.anchorMax = Vector2.one;
+        panelRT.offsetMin = new Vector2(150f,  60f);   // left=50, bottom=60
+        panelRT.offsetMax = new Vector2(-100f, 0f);   // right=100, top=0
 
         var vl = panel.AddComponent<VerticalLayoutGroup>();
         vl.childAlignment       = TextAnchor.UpperCenter;
@@ -805,8 +809,8 @@ public class SceneBootstrapper : MonoBehaviour
         var nsRT = noteStack.GetComponent<RectTransform>();
         nsRT.anchorMin = new Vector2(0f, 0f);
         nsRT.anchorMax = new Vector2(0f, 1f);   // full height, pinned to left edge
-        nsRT.offsetMin = Vector2.zero;
-        nsRT.offsetMax = new Vector2(120f, 0f); // 120 px wide
+        nsRT.offsetMin = new Vector2(0f,   0f);   // X=0, Bottom=0
+        nsRT.offsetMax = new Vector2(120f, 20f); // Width=120, Top=20
         var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
         nsVl.childAlignment         = TextAnchor.UpperCenter;
         nsVl.padding                = new RectOffset(0, 0, FaceStackTopPad, 0);
@@ -845,7 +849,7 @@ public class SceneBootstrapper : MonoBehaviour
         var go  = new GameObject($"NoteHead_{pitchIdx}");
         go.transform.SetParent(parent, false);
 
-        var faceNormal = new Color(0.82f, 0.82f, 0.82f, 0.75f);
+        var faceNormal = new Color(0.463f, 0.392f, 0.498f, 1f);  // #76647f
 
         var img = go.AddComponent<Image>();
         img.sprite = RoundedRectSprite;

@@ -20,10 +20,10 @@ public class PitchButtonPresenter : StimulusPresentationBehaviour
 
     [Header("Visuals")]
     public Image ButtonImage;
-    public Color NormalColor   = new Color(0.55f, 0.55f, 0.55f, 1f);
-    public Color FlashColor    = new Color(1f,    0.929f, 0f,     1f);  // #ffed00 — high-contrast yellow
-    public Color ActiveColor   = new Color(0.3f,  1f,    0.3f,  1f);
-    public Color TargetColor   = new Color(0f,    0.8f,  1f,    1f);
+    public Color NormalColor   = new Color(0.463f, 0.392f, 0.498f, 1f);  // #76647f
+    public Color FlashColor    = new Color(1f,     0.831f, 0.325f, 1f);  // #ffd453
+    public Color ActiveColor   = new Color(0.792f, 0.741f, 0.820f, 1f);  // #cabdd1
+    public Color TargetColor   = new Color(0.965f, 0.318f, 0.408f, 1f);  // #f65168
 
     void Awake()
     {

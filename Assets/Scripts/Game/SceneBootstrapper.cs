@@ -955,7 +955,6 @@ public class SceneBootstrapper : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
             _curtainObject.transform.localPosition = Vector2.Lerp(startPos, finalPos, t);//new Color(mainColor.r, mainColor.g, mainColor.b, 1-Mathf.Log10(Mathf.Lerp(1f, 10f, t)));
-            print($"curtain: {_curtainObject.transform.localPosition}");
             yield return null;
         }
 

@@ -252,8 +252,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 12543e9986b0445b1ade6b57ea15b769, type: 3}
   - {fileID: 8300000, guid: 8185347592c84f799a770eecabf0c3fc, type: 3}
   - {fileID: 8300000, guid: ddd02f28e6c4451b29834cc7f29aaa35, type: 3}
-  mainMenuBackgroundMusic: {fileID: 8300000, guid: 2fe199cf775ece94593efb75beba4a5f, type: 3}
-  newGameStartMusic: {fileID: 8300000, guid: b4fc4e8bafc327367b7f1e1665c1cf28, type: 3}
   BackgroundSprite: {fileID: 21300000, guid: aabb0001cc111111aabbcc1234abcdef, type: 3}
   ForegroundSprite: {fileID: 21300000, guid: e76e8dfeca2c74a15aedbcd45de0cac8, type: 3}
   CurtainSprite: {fileID: 21300000, guid: e29a3797fb85b57c8994e01de6577f6e, type: 3}
@@ -262,7 +260,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 0ae3a2a953f029070b9a06a76d93bb3f, type: 3}
   - {fileID: 21300000, guid: 68e05137ae13de1b9990481e59b2119b, type: 3}
   - {fileID: 21300000, guid: bbe547c086e08c57997ef6cb9929a8b2, type: 3}
-  - {fileID: 21300000, guid: bb917b7cdfce7a2658e65b5dd8644841, type: 3}
+  - {fileID: 21300000, guid: 8e9fc0ff88e03bcdaadb4994009b4f15, type: 3}
   BlobHeadObjects:
   - {fileID: 7800603900488647500, guid: 4bfb50a7c8b9d8230ac6a9528a98cccb, type: 3}
   - {fileID: 7800603900488647500, guid: cba8e92c8a1ca4f81b19c1e663077626, type: 3}
@@ -285,7 +283,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
   - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
   - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
-  TrainingDummyBodyFace: {fileID: 0}
+  TrainingDummyBodyFace: {fileID: 21300000, guid: a5c3fdb6270bf40899634809531516a6, type: 3}
   FaceStackWidth: 80
   FaceButtonHeight: 80
   FaceButtonSpacing: 50

@@ -1,0 +1,3 @@
+[submodule "bci-essentials-python"]
+	path = bci-essentials-python
+	url = https://github.com/kirtonBCIlab/bci-essentials-python

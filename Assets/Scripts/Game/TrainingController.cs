@@ -193,6 +193,7 @@ public class TrainingController : MonoBehaviour
                 {
                     Debug.Log($"[Training] Target: {Names[target]}  |  No prediction yet (accumulating data)");
                     SetResult("Accumulating training data — no prediction yet…");
+                    yield return new WaitForSeconds(3f); // Add 3 seconds gap between the trials. 
                 }
             }
         }

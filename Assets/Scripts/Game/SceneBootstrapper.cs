@@ -457,7 +457,7 @@ public class SceneBootstrapper : MonoBehaviour
             col.AddComponent<LayoutElement>().flexibleWidth = 1;
             var colVl = col.AddComponent<VerticalLayoutGroup>();
             colVl.childAlignment         = TextAnchor.MiddleCenter;
-            colVl.spacing                = 28;
+            colVl.spacing                = 48;
             colVl.childForceExpandWidth  = false;
             colVl.childForceExpandHeight = false;
 
@@ -475,8 +475,8 @@ public class SceneBootstrapper : MonoBehaviour
                 cellImg.color         = cellNormal;
                 cellImg.raycastTarget = false;
                 var cellLE = cellGO.AddComponent<LayoutElement>();
-                cellLE.preferredWidth  = FaceButtonHeight;
-                cellLE.preferredHeight = FaceButtonHeight;
+                cellLE.preferredWidth  = 120f;
+                cellLE.preferredHeight = 120f;
 
                 // Face sprite child — same as game NoteHead
                 var faceGO  = new GameObject("Face");

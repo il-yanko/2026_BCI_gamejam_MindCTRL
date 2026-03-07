@@ -727,55 +727,16 @@ public class SceneBootstrapper : MonoBehaviour
         vl.childForceExpandHeight = false;
         col.AddComponent<LayoutElement>().flexibleWidth = 1;
 
-        // ── Main area: note-head stack (left) + big blob (right) ─────────────
+        // ── Main area: blob fills full width; note-stack overlaid on left ────────
         var mainArea = MakeContainer(col.transform, "MainArea");
-        var hl = mainArea.AddComponent<HorizontalLayoutGroup>();
-        hl.childAlignment       = TextAnchor.UpperCenter;
-        hl.spacing              = 6;
-        hl.childForceExpandWidth  = false;
-        hl.childForceExpandHeight = true;
         var mainLe = mainArea.AddComponent<LayoutElement>();
         mainLe.flexibleWidth  = 1;
         mainLe.flexibleHeight = 1;
-        // No minHeight — FaceButtonHeight controls button size; blob stretches freely.
+        // No layout group — children use absolute RectTransform positioning.
 
-        // Note-head stack on the LEFT — buttons sit at the top, sized by FaceButtonHeight ──
-        var noteStack = MakeContainer(mainArea.transform, "NoteStack");
-        var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
-        nsVl.childAlignment         = TextAnchor.UpperCenter;
-        nsVl.padding                = new RectOffset(0, 0, FaceStackTopPad, 0);
-        nsVl.spacing                = 48f;   // match training spacing
-        nsVl.childForceExpandWidth  = true;
-        nsVl.childForceExpandHeight = false;  // buttons use preferredHeight; reduce to push up
-        var nsLe = noteStack.AddComponent<LayoutElement>();
-        nsLe.preferredWidth  = 120f;   // match training cell width
-        nsLe.flexibleHeight  = 1;
-
-        // Register for the shared resize handle and add the drag strip
-        _noteStackElements.Add(nsLe);
-
-        var handleGO = new GameObject("ResizeHandle");
-        handleGO.transform.SetParent(noteStack.transform, false);
-        handleGO.AddComponent<Image>();                                   // colour set by NoteStackResizeHandle.Awake()
-        handleGO.AddComponent<LayoutElement>().ignoreLayout = true;       // excluded from VL layout
-        var handleRT = handleGO.GetComponent<RectTransform>();
-        handleRT.anchorMin = new Vector2(1f, 0f);                         // anchored to right edge
-        handleRT.anchorMax = Vector2.one;
-        handleRT.offsetMin = new Vector2(-8f, 0f);                        // 8 px wide
-        handleRT.offsetMax = Vector2.zero;
-        handleGO.AddComponent<NoteStackResizeHandle>().NoteStacks = _noteStackElements;
-
-        pitchBtns = new PitchButtonPresenter[4];
-        for (int p = 3; p >= 0; p--)
-            pitchBtns[p] = BuildNoteHead(noteStack.transform, charIdx, p);
-
-        // Big blob on the RIGHT ────────────────────────────────────────────────
-        // blobBox is controlled by the layout; BlobPresenter lives one level
-        // below so the sway animation never fights the layout system.
+        // Blob fills the entire main area ─────────────────────────────────────
         var blobBox = MakeContainer(mainArea.transform, "BlobBox");
-        var bble = blobBox.AddComponent<LayoutElement>();
-        bble.flexibleWidth  = 1;
-        bble.flexibleHeight = 1;
+        Stretch(blobBox);   // fills mainArea fully; no longer shares row with NoteStack
 
         var blobGO = MakeContainer(blobBox.transform, "BlobPresenter");
         var brt = (RectTransform)blobGO.transform;
@@ -829,6 +790,40 @@ public class SceneBootstrapper : MonoBehaviour
         blob.HeadObj = headGO;
         blob.SwayAmount = 14f;
         blob.BobAmount  = 7f;
+
+        // Note-head stack — created AFTER blob so it renders on top ───────────
+        // Anchored to the left edge of mainArea as an overlay (does not affect blob width).
+        var noteStack = MakeContainer(mainArea.transform, "NoteStack");
+        var nsRT = noteStack.GetComponent<RectTransform>();
+        nsRT.anchorMin = new Vector2(0f, 0f);
+        nsRT.anchorMax = new Vector2(0f, 1f);   // full height, pinned to left edge
+        nsRT.offsetMin = Vector2.zero;
+        nsRT.offsetMax = new Vector2(120f, 0f); // 120 px wide
+        var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
+        nsVl.childAlignment         = TextAnchor.UpperCenter;
+        nsVl.padding                = new RectOffset(0, 0, FaceStackTopPad, 0);
+        nsVl.spacing                = 48f;
+        nsVl.childForceExpandWidth  = true;
+        nsVl.childForceExpandHeight = false;
+        var nsLe = noteStack.AddComponent<LayoutElement>();
+        nsLe.preferredWidth = 120f;  // used by NoteStackResizeHandle
+        nsLe.ignoreLayout   = true;  // excluded from mainArea — blob is unaffected
+        _noteStackElements.Add(nsLe);
+
+        var handleGO = new GameObject("ResizeHandle");
+        handleGO.transform.SetParent(noteStack.transform, false);
+        handleGO.AddComponent<Image>();
+        handleGO.AddComponent<LayoutElement>().ignoreLayout = true;
+        var handleRT = handleGO.GetComponent<RectTransform>();
+        handleRT.anchorMin = new Vector2(1f, 0f);
+        handleRT.anchorMax = Vector2.one;
+        handleRT.offsetMin = new Vector2(-8f, 0f);
+        handleRT.offsetMax = Vector2.zero;
+        handleGO.AddComponent<NoteStackResizeHandle>().NoteStacks = _noteStackElements;
+
+        pitchBtns = new PitchButtonPresenter[4];
+        for (int p = 3; p >= 0; p--)
+            pitchBtns[p] = BuildNoteHead(noteStack.transform, charIdx, p);
 
         return blob;
     }

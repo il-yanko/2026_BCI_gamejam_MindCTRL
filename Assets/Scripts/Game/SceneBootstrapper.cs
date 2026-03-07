@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,6 +30,8 @@ public class SceneBootstrapper : MonoBehaviour
     public AudioClip[] BlueVoiceClips   = new AudioClip[4];
     public AudioClip[] YellowVoiceClips = new AudioClip[4];
     public AudioClip[] GreenVoiceClips  = new AudioClip[4];
+    public AudioClip mainMenuBackgroundMusic;
+    public AudioClip newGameStartMusic;
 
     [Header("Art — Background / Foreground")]
     public Sprite BackgroundSprite;
@@ -191,6 +194,8 @@ public class SceneBootstrapper : MonoBehaviour
         tc.StartTrainBtn.onClick.AddListener(tc.BeginTraining);
         tc.StartEvalBtn.onClick.AddListener(tc.BeginEvaluation);
         tc.StopBtn.onClick.AddListener(tc.StopSequence);
+
+        StartMainMenuMusic();
     }
 
     // ── BCI / logic system ────────────────────────────────────────────────────
@@ -300,6 +305,9 @@ public class SceneBootstrapper : MonoBehaviour
         MakeButton(buttonPanel.transform, "SettingsBtn", "SETTINGS",
             btnBg, 34, 340, 76,
             () => GameFlowController.Instance?.ShowSettings(), FontStyle.Bold, btnText, _mainMenuMaterial);
+
+        var audioPlayer = panel.AddComponent<AudioSource>();
+        audioPlayer.clip = mainMenuBackgroundMusic;
 
         return panel;
     }
@@ -891,6 +899,8 @@ public class SceneBootstrapper : MonoBehaviour
 
     private IEnumerator StartGameAnimation()
     {
+        StopMainMenuMusic();
+
         var mainColor = _mainMenuMaterial.color;
         float duration = 1.5f;
         float elapsed  = 0f;
@@ -921,6 +931,39 @@ public class SceneBootstrapper : MonoBehaviour
         _mainMenuPanel.SetActive(false);
         _mainMenuMaterial.color = new Color(mainColor.r, mainColor.g, mainColor.b, 1);
         GameFlowController.Instance?.StartNewGame();
+    }
+
+    private void StartMainMenuMusic()
+    {
+        _mainMenuPanel.GetComponent<AudioSource>().Play();
+    }
+
+    private void StopMainMenuMusic()
+    {
+        StartCoroutine(StopMainMenuMusicImpl());
+    }
+
+    private IEnumerator StopMainMenuMusicImpl()
+    {
+        var transitionObj = new GameObject();
+        transitionObj.transform.SetParent(_mainMenuPanel.transform, false);
+        var transitionSource = transitionObj.AddComponent<AudioSource>();
+        transitionSource.clip = newGameStartMusic;
+        transitionSource.Play();
+
+        var audioSource = _mainMenuPanel.GetComponent<AudioSource>();
+        var duration = 3f;
+        var elapsed = 0f;
+        var startVolume = audioSource.volume;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            audioSource.volume = Mathf.Lerp(startVolume, 0f, t);
+            yield return null;
+        }
+        audioSource.Stop();
+        audioSource.volume = startVolume;
     }
 
     // ── UI helper methods ─────────────────────────────────────────────────────

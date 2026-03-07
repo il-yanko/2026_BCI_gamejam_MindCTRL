@@ -81,6 +81,7 @@ public class GameFlowController : MonoBehaviour
         SetPanelActive(GamePanel,     false);
         SetPanelActive(TrainingPanel, false);
         SetPanelActive(SettingsPanel, false);
+        MainMenuPanel.GetComponent<AudioSource>().Play();
     }
 
     public void ShowSettings()

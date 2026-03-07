@@ -744,11 +744,11 @@ public class SceneBootstrapper : MonoBehaviour
         var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
         nsVl.childAlignment         = TextAnchor.UpperCenter;
         nsVl.padding                = new RectOffset(0, 0, FaceStackTopPad, 0);
-        nsVl.spacing                = FaceButtonSpacing;
+        nsVl.spacing                = 48f;   // match training spacing
         nsVl.childForceExpandWidth  = true;
         nsVl.childForceExpandHeight = false;  // buttons use preferredHeight; reduce to push up
         var nsLe = noteStack.AddComponent<LayoutElement>();
-        nsLe.preferredWidth  = FaceStackWidth;
+        nsLe.preferredWidth  = 120f;   // match training cell width
         nsLe.flexibleHeight  = 1;
 
         // Register for the shared resize handle and add the drag strip
@@ -850,7 +850,7 @@ public class SceneBootstrapper : MonoBehaviour
         img.color  = faceNormal;
         var le  = go.AddComponent<LayoutElement>();
         le.flexibleWidth   = 1;
-        le.preferredHeight = FaceButtonHeight;   // no minHeight — freely resizable
+        le.preferredHeight = 120f;   // match training cell size
 
         // Pitch-level face sprite (FaceLevel0–3, stacked: Yelling at top / Calm at bottom)
         var faceGO  = new GameObject("Face");

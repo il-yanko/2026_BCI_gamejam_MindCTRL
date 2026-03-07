@@ -807,10 +807,11 @@ public class SceneBootstrapper : MonoBehaviour
         // Anchored to the left edge of mainArea as an overlay (does not affect blob width).
         var noteStack = MakeContainer(mainArea.transform, "NoteStack");
         var nsRT = noteStack.GetComponent<RectTransform>();
+        nsRT.pivot     = new Vector2(0f, 0.5f); // left-edge pivot so Inspector Pos X = left edge directly
         nsRT.anchorMin = new Vector2(0f, 0f);
         nsRT.anchorMax = new Vector2(0f, 1f);   // full height, pinned to left edge
-        nsRT.offsetMin = new Vector2(0f,   0f);   // X=0, Bottom=0
-        nsRT.offsetMax = new Vector2(120f, 20f); // Width=120, Top=20
+        nsRT.offsetMin = new Vector2(-20f,  0f);  // shift 20px left from X=0; Bottom=0
+        nsRT.offsetMax = new Vector2(100f, -20f); // Right edge = -20+120=100 → Width=120; Top=20
         var nsVl = noteStack.AddComponent<VerticalLayoutGroup>();
         nsVl.childAlignment         = TextAnchor.UpperCenter;
         nsVl.padding                = new RectOffset(0, 0, FaceStackTopPad, 0);

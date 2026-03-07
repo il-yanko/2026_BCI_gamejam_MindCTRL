@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Diagnostics;
 
 /// <summary>
 /// Singleton that holds all runtime configuration flags and settings.
@@ -36,5 +37,17 @@ public class GameConfig : MonoBehaviour
     public int   GetFlashesPerOption() => flashesPerOption;
 
     public void SetAudioEnabled(bool v) { enableAudio  = v; }
-    public void SetMasterVolume(float v){ masterVolume = Mathf.Clamp01(v); }
+    public void SetMasterVolume(float v)
+    {
+        masterVolume = Mathf.Clamp01(v);
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+        int pct = Mathf.RoundToInt(masterVolume * 100f);
+        Process.Start(new ProcessStartInfo("osascript",
+            $"-e \"set volume output volume {pct}\"")
+        {
+            CreateNoWindow  = true,
+            UseShellExecute = false
+        });
+#endif
+    }
 }

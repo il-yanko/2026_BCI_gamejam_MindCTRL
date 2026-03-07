@@ -283,6 +283,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
   - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
   - {fileID: 21300000, guid: 073386c949ac54dc4a7c829aeaf046ef, type: 3}
+  TrainingDummyFace: {fileID: 21300000, guid: 854734988f8d6415788cab99439a1d31, type: 3}
+  TrainingDummyBody: {fileID: 21300000, guid: 048579502c4f843c3bb4fa63e4cd3edd, type: 3}
   FaceStackWidth: 80
   FaceButtonHeight: 80
   FaceButtonSpacing: 50

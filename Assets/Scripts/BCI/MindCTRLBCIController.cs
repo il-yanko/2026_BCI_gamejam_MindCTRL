@@ -28,10 +28,10 @@ public class MindCTRLBCIController : MonoBehaviour
     public CharacterSelectionHandler SelectionHandler;
 
     [Header("Trial parameters")]
-    public int   FlashesPerOption   = 10;
-    public float OnTime             = 0.1f;
-    public float OffTime            = 0.075f;
-    public float TrialPauseDuration = 0.5f;
+    public int   FlashesPerOption   = 7;
+    public float OnTime             = 0.2f;
+    public float OffTime            = 0.15f;
+    public float TrialPauseDuration = 3.5f;
 
     [Header("Checkerboard grid (must match stimulus count: Rows × Columns = 16)")]
     public int GridRows    = 4;

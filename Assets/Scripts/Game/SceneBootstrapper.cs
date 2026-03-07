@@ -265,7 +265,7 @@ public class SceneBootstrapper : MonoBehaviour
         var buttonPanel = new GameObject("MainMenuButtons", typeof(RectTransform));
         buttonPanel.transform.SetParent(panel.transform, false);
         Stretch(buttonPanel);
-        buttonPanel.transform.localPosition = new Vector2(0f, -300f);
+        buttonPanel.transform.localPosition = new Vector2(0f, -200f);
         var vl = buttonPanel.AddComponent<HorizontalLayoutGroup>();
         vl.childAlignment       = TextAnchor.MiddleCenter;
         vl.spacing              = 24;

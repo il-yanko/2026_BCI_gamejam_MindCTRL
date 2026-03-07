@@ -32,6 +32,8 @@ public class SceneBootstrapper : MonoBehaviour
     [Header("Art — Background / Foreground")]
     public Sprite BackgroundSprite;
     public Sprite ForegroundSprite;
+    public Sprite CurtainSprite;
+    public Sprite LogoSprite;
 
     [Header("Art — Character Body Sprites (Red, Green, Blue, Yellow)")]
     public Sprite[] BlobBodySprites = new Sprite[4];
@@ -97,6 +99,21 @@ public class SceneBootstrapper : MonoBehaviour
 
         // 3. Canvas + all panels
         var canvas   = BuildCanvas();
+
+        // Background shared across all windows
+        {
+            var bgGO  = new GameObject("Background");
+            bgGO.transform.SetParent(canvas.transform, false);
+            var bgImg = bgGO.AddComponent<Image>();
+            if (BackgroundSprite != null)
+                bgImg.sprite = BackgroundSprite;
+            else
+                bgImg.color = new Color(0.05f, 0.02f, 0.12f);
+            bgImg.raycastTarget = false;
+            bgImg.preserveAspect = false;
+            Stretch(bgGO);
+        }
+
         var mainMenu = BuildMainMenu(canvas.transform);
 
         // GamePanel added first; TrainingPanel is a later sibling so it renders on top.
@@ -107,6 +124,18 @@ public class SceneBootstrapper : MonoBehaviour
             out var playBtn,
             out var playLabel,
             out var playPausePresenter);
+
+        // Foreground layer (audience silhouettes — rendered above blobs, pointer-transparent)
+        if (ForegroundSprite != null)
+        {
+            var fgGO  = new GameObject("Foreground");
+            fgGO.transform.SetParent(canvas.transform, false);
+            var fgImg = fgGO.AddComponent<Image>();
+            fgImg.sprite         = ForegroundSprite;
+            fgImg.raycastTarget  = false;
+            fgImg.preserveAspect = false;
+            Stretch(fgGO);
+        }
 
         var trainingPanel = BuildTrainingPanel(canvas.transform, out var tc);
 
@@ -193,36 +222,49 @@ public class SceneBootstrapper : MonoBehaviour
 
     GameObject BuildMainMenu(Transform root)
     {
-        var panel = MakePanel(root, "MainMenuPanel", new Color(0.05f, 0.02f, 0.12f));
+        var panel = new GameObject("MainMenu", typeof(RectTransform));
+        panel.transform.SetParent(root, false);
         Stretch(panel);
 
-        var vl = panel.AddComponent<VerticalLayoutGroup>();
+        var curtains = new GameObject("Curtains");
+        curtains.transform.SetParent(panel.transform);
+        var curtainImg = curtains.AddComponent<Image>();
+        if (CurtainSprite != null)
+            curtainImg.sprite = CurtainSprite;
+        Stretch(curtains);
+        var arFitter = curtains.AddComponent<AspectRatioFitter>();
+        arFitter.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
+        arFitter.aspectRatio = 2;
+        arFitter.transform.localPosition = new Vector2(0f, 125f);
+
+        var logo = new GameObject("Logo");
+        logo.transform.SetParent(panel.transform);
+        var logoImg = logo.AddComponent<Image>();
+        if (LogoSprite != null)
+            logoImg.sprite = LogoSprite;
+        logoImg.SetNativeSize();
+        logo.transform.localPosition = new Vector2(0f, 100f);
+
+        var buttonPanel = new GameObject("MainMenuButtons", typeof(RectTransform));
+        buttonPanel.transform.SetParent(panel.transform, false);
+        Stretch(buttonPanel);
+        buttonPanel.transform.localPosition = new Vector2(0f, -295f);
+        var vl = buttonPanel.AddComponent<HorizontalLayoutGroup>();
         vl.childAlignment       = TextAnchor.MiddleCenter;
         vl.spacing              = 30;
-        vl.padding              = new RectOffset(0, 0, 80, 80);
+        vl.padding              = new RectOffset(80, 80, 0, 0);
         vl.childForceExpandWidth  = false;
         vl.childForceExpandHeight = false;
 
-        MakeText(panel.transform, "Title", "OPERA OF BLOBS",
-            84, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, prefW: 900, prefH: 110);
-
-        MakeText(panel.transform, "Sub", "Conduct your blob orchestra!",
-            30, new Color(0.75f, 0.65f, 1f), TextAnchor.MiddleCenter,
-            FontStyle.Italic, prefW: 700, prefH: 46);
-
-        MakeSpacer(panel.transform, 30);
-
-        MakeButton(panel.transform, "NewGameBtn", "> NEW GAME",
+        MakeButton(buttonPanel.transform, "NewGameBtn", "> NEW GAME",
             new Color(0.25f, 0.75f, 0.35f), 38, 340, 76,
             () => GameFlowController.Instance?.StartNewGame(), FontStyle.Bold);
 
-        MakeButton(panel.transform, "TrainingBtn", "TRAINING",
+        MakeButton(buttonPanel.transform, "TrainingBtn", "TRAINING",
             new Color(0.35f, 0.35f, 0.75f), 32, 280, 64,
             () => GameFlowController.Instance?.StartTraining());
 
-        MakeSpacer(panel.transform, 10);
-
-        MakeButton(panel.transform, "QuitBtn", "QUIT",
+        MakeButton(buttonPanel.transform, "QuitBtn", "QUIT",
             new Color(0.35f, 0.18f, 0.18f), 22, 160, 46,
             () => Application.Quit());
 
@@ -243,20 +285,6 @@ public class SceneBootstrapper : MonoBehaviour
         var wrapper = MakeContainer(root, "GamePanel");
         Stretch(wrapper);
         wrapper.SetActive(false);
-
-        // Background layer (theater stage)
-        {
-            var bgGO  = new GameObject("Background");
-            bgGO.transform.SetParent(wrapper.transform, false);
-            var bgImg = bgGO.AddComponent<Image>();
-            if (BackgroundSprite != null)
-                bgImg.sprite = BackgroundSprite;
-            else
-                bgImg.color = new Color(0.05f, 0.02f, 0.12f);
-            bgImg.raycastTarget = false;
-            bgImg.preserveAspect = false;
-            Stretch(bgGO);
-        }
 
         // Content panel (layout container, transparent so background shows through)
         var panel = MakeContainer(wrapper.transform, "GameContent");
@@ -326,18 +354,6 @@ public class SceneBootstrapper : MonoBehaviour
         // Add P300 stimulus component so the play/pause button is the 17th stimulus
         playPausePresenter             = playGO.AddComponent<PlayPauseButtonPresenter>();
         playPausePresenter.ButtonImage = playGO.GetComponent<Image>();
-
-        // Foreground layer (audience silhouettes — rendered above blobs, pointer-transparent)
-        if (ForegroundSprite != null)
-        {
-            var fgGO  = new GameObject("Foreground");
-            fgGO.transform.SetParent(wrapper.transform, false);
-            var fgImg = fgGO.AddComponent<Image>();
-            fgImg.sprite         = ForegroundSprite;
-            fgImg.raycastTarget  = false;
-            fgImg.preserveAspect = false;
-            Stretch(fgGO);
-        }
 
         gamePanel = wrapper;
     }

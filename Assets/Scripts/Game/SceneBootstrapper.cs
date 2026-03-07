@@ -925,10 +925,9 @@ public class SceneBootstrapper : MonoBehaviour
             print($"curtain: {_curtainObject.transform.localPosition}");
             yield return null;
         }
-        _curtainObject.SetActive(false);
-        _curtainObject.transform.localPosition = startPos;
 
         _mainMenuPanel.SetActive(false);
+        _curtainObject.transform.localPosition = startPos;
         _mainMenuMaterial.color = new Color(mainColor.r, mainColor.g, mainColor.b, 1);
         GameFlowController.Instance?.StartNewGame();
     }

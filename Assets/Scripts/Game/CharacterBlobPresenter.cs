@@ -22,7 +22,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     public FaceSwitcher FaceSwitcher;
 
     [Header("Audio")]
-    public AudioSource AudioSrc;
+    public SegmentedAudioPlayer AudioSrc;
     /// <summary>One clip per pitch level (4 total).</summary>
     public AudioClip[] VoiceClips = new AudioClip[4];
 
@@ -59,8 +59,8 @@ public class CharacterBlobPresenter : MonoBehaviour
 
     void Awake()
     {
-        if (AudioSrc == null) AudioSrc = GetComponent<AudioSource>();
-        if (AudioSrc == null) AudioSrc = gameObject.AddComponent<AudioSource>();
+        if (AudioSrc == null) AudioSrc = GetComponent<SegmentedAudioPlayer>();
+        if (AudioSrc == null) AudioSrc = gameObject.AddComponent<SegmentedAudioPlayer>();
 
         _restLocalPos = transform.localPosition;
     }
@@ -109,15 +109,14 @@ public class CharacterBlobPresenter : MonoBehaviour
         if (clip == null) return;
 
         AudioSrc.volume = GameConfig.Instance.masterVolume;
-        if (AudioSrc.isPlaying && AudioSrc.clip == clip) return;  // already on this note
-        AudioSrc.clip   = clip;
-        AudioSrc.loop   = true;
-        AudioSrc.Play();
+        if (AudioSrc.isPlaying && AudioSrc.middle == clip) return;  // already on this note
+        AudioSrc.middle   = clip;
+        AudioSrc.PlayLoop();
     }
 
     public void PauseVoice()
     {
-        AudioSrc?.Pause();
+        AudioSrc?.Stop();
         _isSinging = false;
         FaceSwitcher.SetIsSinging(_isSinging);
         StopSingAnim();
@@ -262,8 +261,8 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         AudioClip clip = ClipAt(CurrentPitchIndex);
         if (clip == null) return;
-        if (AudioSrc.clip == clip) return;  // same note — let it keep playing uninterrupted
-        AudioSrc.clip = clip;
+        if (AudioSrc.middle == clip) return;  // same note — let it keep playing uninterrupted
+        AudioSrc.middle = clip;
         AudioSrc.Play();
     }
 

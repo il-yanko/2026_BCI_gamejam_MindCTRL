@@ -63,14 +63,22 @@ public class CharacterBlobPresenter : MonoBehaviour
         if (AudioSrc == null) AudioSrc = gameObject.AddComponent<AudioSource>();
 
         _restLocalPos = transform.localPosition;
+    }
 
-        // Snap to starting pitch scale immediately (no coroutine needed at Awake time)
+    void Start()
+    {
+        // Deferred to Start: BlobImage/HeadObj/FaceSwitcher are assigned after
+        // AddComponent in SceneBootstrapper, so Awake sees them as null.
         _targetScaleY = ScaleForPitch(CurrentPitchIndex);
-        _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
-        HeadObj.transform.localPosition = new Vector3(0f, _targetScaleY - _headYOffset, 0f);
-
-        FaceSwitcher.SetPitchLevel(CurrentPitchIndex);
-        FaceSwitcher.SetIsSinging(_isSinging);
+        if (BlobImage != null)
+            _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
+        if (HeadObj != null)
+            HeadObj.transform.localPosition = new Vector3(0f, _targetScaleY - _headYOffset, 0f);
+        if (FaceSwitcher != null)
+        {
+            FaceSwitcher.SetPitchLevel(CurrentPitchIndex);
+            FaceSwitcher.SetIsSinging(_isSinging);
+        }
     }
 
     // ── Pitch & visuals ────────────────────────────────────────────────────────

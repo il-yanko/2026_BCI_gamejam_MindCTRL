@@ -33,6 +33,7 @@ public class GameFlowController : MonoBehaviour
     public GameObject MainMenuPanel;
     public GameObject GamePanel;
     public GameObject TrainingPanel;
+    public GameObject SettingsPanel;
 
     [Header("Play / Pause button (assign in Inspector)")]
     public Button PlayPauseButton;
@@ -79,6 +80,17 @@ public class GameFlowController : MonoBehaviour
         SetPanelActive(MainMenuPanel, true);
         SetPanelActive(GamePanel,     false);
         SetPanelActive(TrainingPanel, false);
+        SetPanelActive(SettingsPanel, false);
+    }
+
+    public void ShowSettings()
+    {
+        IsTrainingActive = false;
+        BCIController?.StopContinuousTrials();
+        SetPanelActive(MainMenuPanel, false);
+        SetPanelActive(GamePanel,     false);
+        SetPanelActive(TrainingPanel, false);
+        SetPanelActive(SettingsPanel, true);
     }
 
     public void StartNewGame()

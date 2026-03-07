@@ -138,6 +138,7 @@ public class SceneBootstrapper : MonoBehaviour
         }
 
         var trainingPanel = BuildTrainingPanel(canvas.transform, out var tc);
+        var settingsPanel = BuildSettingsPanel(canvas.transform);
 
         // 3. Wire voice clips — procedural funny voices fill any null slots
         var allClips = new[] { RedVoiceClips, BlueVoiceClips, YellowVoiceClips, GreenVoiceClips };
@@ -166,6 +167,7 @@ public class SceneBootstrapper : MonoBehaviour
         flow.MainMenuPanel   = mainMenu;
         flow.GamePanel       = gamePanel;
         flow.TrainingPanel   = trainingPanel;
+        flow.SettingsPanel   = settingsPanel;
         flow.Blobs           = blobs;
         flow.PitchButtons    = pitchButtons;
         flow.PlayPauseButton = playBtn;
@@ -191,7 +193,8 @@ public class SceneBootstrapper : MonoBehaviour
         out CharacterSelectionHandler handler)
     {
         var go = new GameObject("BCISystem");
-        go.AddComponent<AudioListener>();       // exactly one listener in the scene
+        if (FindAnyObjectByType<AudioListener>() == null)
+            go.AddComponent<AudioListener>();   // exactly one listener in the scene
         go.AddComponent<GameConfig>();          // sets GameConfig.Instance
         GameConfig.Instance.useMockBCI = UseMockBCI;
         flow    = go.AddComponent<GameFlowController>();   // sets GameFlowController.Instance
@@ -227,46 +230,63 @@ public class SceneBootstrapper : MonoBehaviour
         Stretch(panel);
 
         var curtains = new GameObject("Curtains");
-        curtains.transform.SetParent(panel.transform);
+        curtains.transform.SetParent(panel.transform, false);
         var curtainImg = curtains.AddComponent<Image>();
         if (CurtainSprite != null)
             curtainImg.sprite = CurtainSprite;
+        else
+            curtainImg.color = Color.clear;
         Stretch(curtains);
         var arFitter = curtains.AddComponent<AspectRatioFitter>();
         arFitter.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
         arFitter.aspectRatio = 2;
         arFitter.transform.localPosition = new Vector2(0f, 125f);
 
+        // Logo — constrained to 900 px wide, aspect-correct height
         var logo = new GameObject("Logo");
-        logo.transform.SetParent(panel.transform);
-        var logoImg = logo.AddComponent<Image>();
+        logo.transform.SetParent(panel.transform, false);
+        var logoImg = logo.AddComponent<Image>();  // Image adds the RectTransform
+        logoImg.preserveAspect = true;
+        logoImg.raycastTarget  = false;
         if (LogoSprite != null)
             logoImg.sprite = LogoSprite;
-        logoImg.SetNativeSize();
-        logo.transform.localPosition = new Vector2(0f, 100f);
+        var logoRT = logo.GetComponent<RectTransform>();
+        logoRT.anchorMin        = new Vector2(0.5f, 0.5f);
+        logoRT.anchorMax        = new Vector2(0.5f, 0.5f);
+        logoRT.pivot            = new Vector2(0.5f, 0.5f);
+        logoRT.sizeDelta        = new Vector2(900f, 300f);
+        logoRT.anchoredPosition = new Vector2(0f, 165f);
+        var logoArf = logo.AddComponent<AspectRatioFitter>();
+        logoArf.aspectMode  = AspectRatioFitter.AspectMode.WidthControlsHeight;
+        logoArf.aspectRatio = LogoSprite != null
+            ? (float)LogoSprite.texture.width / LogoSprite.texture.height
+            : 3f;
 
         var buttonPanel = new GameObject("MainMenuButtons", typeof(RectTransform));
         buttonPanel.transform.SetParent(panel.transform, false);
         Stretch(buttonPanel);
-        buttonPanel.transform.localPosition = new Vector2(0f, -295f);
+        buttonPanel.transform.localPosition = new Vector2(0f, -300f);
         var vl = buttonPanel.AddComponent<HorizontalLayoutGroup>();
         vl.childAlignment       = TextAnchor.MiddleCenter;
-        vl.spacing              = 30;
-        vl.padding              = new RectOffset(80, 80, 0, 0);
+        vl.spacing              = 24;
+        vl.padding              = new RectOffset(40, 40, 0, 0);
         vl.childForceExpandWidth  = false;
         vl.childForceExpandHeight = false;
 
-        MakeButton(buttonPanel.transform, "NewGameBtn", "> NEW GAME",
-            new Color(0.25f, 0.75f, 0.35f), 38, 340, 76,
-            () => GameFlowController.Instance?.StartNewGame(), FontStyle.Bold);
+        var btnBg   = new Color(0.97f, 0.78f, 0.88f);   // lighter pink
+        var btnText = new Color(0.28f, 0.08f, 0.42f);   // dark purple
+
+        MakeButton(buttonPanel.transform, "NewGameBtn", "NEW GAME",
+            btnBg, 34, 340, 76,
+            () => GameFlowController.Instance?.StartNewGame(), FontStyle.Bold, btnText);
 
         MakeButton(buttonPanel.transform, "TrainingBtn", "TRAINING",
-            new Color(0.35f, 0.35f, 0.75f), 32, 280, 64,
-            () => GameFlowController.Instance?.StartTraining());
+            btnBg, 34, 340, 76,
+            () => GameFlowController.Instance?.StartTraining(), FontStyle.Bold, btnText);
 
-        MakeButton(buttonPanel.transform, "QuitBtn", "QUIT",
-            new Color(0.35f, 0.18f, 0.18f), 22, 160, 46,
-            () => Application.Quit());
+        MakeButton(buttonPanel.transform, "SettingsBtn", "SETTINGS",
+            btnBg, 34, 340, 76,
+            () => GameFlowController.Instance?.ShowSettings(), FontStyle.Bold, btnText);
 
         return panel;
     }
@@ -292,15 +312,15 @@ public class SceneBootstrapper : MonoBehaviour
 
         var vl = panel.AddComponent<VerticalLayoutGroup>();
         vl.childAlignment       = TextAnchor.UpperCenter;
-        vl.spacing              = 12;
-        vl.padding              = new RectOffset(20, 20, 18, 18);
+        vl.spacing              = 8;
+        vl.padding              = new RectOffset(20, 20, 4, 18);
         vl.childForceExpandWidth  = true;
         vl.childForceExpandHeight = false;
 
         // Header
         MakeText(panel.transform, "Header", "OPERA  OF  BLOBS",
-            44, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold,
-            prefH: 62, flexW: true);
+            38, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold,
+            prefH: 44, flexW: true);
 
         // Blob row
         var rowGO = MakeContainer(panel.transform, "BlobRow");
@@ -364,14 +384,7 @@ public class SceneBootstrapper : MonoBehaviour
     {
         tc = FindAnyObjectByType<TrainingController>();
 
-        // Dim cell colours — must match TrainingController.CellNormal[] and CellPlayPause
-        Color[] cellNormal =
-        {
-            new Color(0.36f, 0.08f, 0.08f),  // Red   (indices 0-3)
-            new Color(0.07f, 0.28f, 0.10f),  // Green (indices 4-7)
-            new Color(0.08f, 0.15f, 0.36f),  // Blue  (indices 8-11)
-            new Color(0.33f, 0.29f, 0.03f),  // Yellow(indices 12-15)
-        };
+        var cellNormal       = new Color(0.82f, 0.82f, 0.82f, 0.75f);  // same as game face buttons
         var cellPlayPauseCol = new Color(0.10f, 0.28f, 0.45f);
 
         var gridCells = new UnityEngine.UI.Image[17];
@@ -381,12 +394,12 @@ public class SceneBootstrapper : MonoBehaviour
         Stretch(wrapper);
         wrapper.SetActive(false);
 
-        // Opaque dark background
+        // Semi-transparent overlay — lets the canvas-level Background sprite show through
         {
             var bgGO  = new GameObject("Background");
             bgGO.transform.SetParent(wrapper.transform, false);
             var bgImg = bgGO.AddComponent<Image>();
-            bgImg.color         = new Color(0.04f, 0.04f, 0.14f, 1f);
+            bgImg.color         = new Color(0.04f, 0.04f, 0.14f, 0.55f);
             bgImg.raycastTarget = false;
             Stretch(bgGO);
         }
@@ -433,7 +446,7 @@ public class SceneBootstrapper : MonoBehaviour
         charGrid.AddComponent<LayoutElement>().flexibleHeight = 1;
         var cgHl = charGrid.AddComponent<HorizontalLayoutGroup>();
         cgHl.childAlignment         = TextAnchor.MiddleCenter;
-        cgHl.spacing                = 16;
+        cgHl.spacing                = 32;
         cgHl.childForceExpandWidth  = true;
         cgHl.childForceExpandHeight = false;
 
@@ -443,7 +456,7 @@ public class SceneBootstrapper : MonoBehaviour
             col.AddComponent<LayoutElement>().flexibleWidth = 1;
             var colVl = col.AddComponent<VerticalLayoutGroup>();
             colVl.childAlignment         = TextAnchor.MiddleCenter;
-            colVl.spacing                = 12;
+            colVl.spacing                = 28;
             colVl.childForceExpandWidth  = false;
             colVl.childForceExpandHeight = false;
 
@@ -458,19 +471,35 @@ public class SceneBootstrapper : MonoBehaviour
                 int flatIdx = c * 4 + p;
                 var cellGO  = new GameObject($"Cell_{flatIdx}");
                 cellGO.transform.SetParent(col.transform, false);
+
+                // Rounded-rect background — same style as game face buttons
                 var cellImg = cellGO.AddComponent<Image>();
-                cellImg.color         = cellNormal[c];
+                cellImg.sprite        = RoundedRectSprite;
+                cellImg.type          = Image.Type.Sliced;
+                cellImg.color         = cellNormal;
                 cellImg.raycastTarget = false;
                 var cellLE = cellGO.AddComponent<LayoutElement>();
-                cellLE.preferredWidth  = 90;
-                cellLE.preferredHeight = 90;
-                cellLE.minHeight       = 40;
+                cellLE.preferredWidth  = FaceButtonHeight;
+                cellLE.preferredHeight = FaceButtonHeight;
 
-                var lblGO = MakeText(cellGO.transform, "Lbl", PitchNames[p],
-                    16, new Color(0.88f, 0.88f, 0.95f), TextAnchor.MiddleCenter);
-                var lrt = lblGO.GetComponent<RectTransform>();
-                lrt.anchorMin = Vector2.zero;  lrt.anchorMax = Vector2.one;
-                lrt.offsetMin = Vector2.zero;  lrt.offsetMax = Vector2.zero;
+                // Face sprite child — same as game NoteHead
+                var faceGO  = new GameObject("Face");
+                faceGO.transform.SetParent(cellGO.transform, false);
+                var faceImg = faceGO.AddComponent<Image>();
+                faceImg.color          = Color.white;
+                faceImg.preserveAspect = true;
+                faceImg.raycastTarget  = false;
+                if (FaceSprites != null && p < FaceSprites.Length && FaceSprites[p] != null)
+                    faceImg.sprite = FaceSprites[p];
+                var frt = faceGO.GetComponent<RectTransform>();
+                frt.anchorMin = new Vector2(0.5f, 0.5f);
+                frt.anchorMax = new Vector2(0.5f, 0.5f);
+                frt.pivot     = new Vector2(0.5f, 0.5f);
+                frt.offsetMin = Vector2.zero;
+                frt.offsetMax = Vector2.zero;
+                var farf = faceGO.AddComponent<AspectRatioFitter>();
+                farf.aspectMode  = AspectRatioFitter.AspectMode.FitInParent;
+                farf.aspectRatio = FaceAspectRatio;
 
                 gridCells[flatIdx] = cellImg;
             }
@@ -547,7 +576,143 @@ public class SceneBootstrapper : MonoBehaviour
             new Color(0.28f, 0.28f, 0.40f), 20, 200, 40,
             () => GameFlowController.Instance?.ShowMainMenu());
 
+        // Foreground layer (audience silhouettes) — rendered above training grid, pointer-transparent
+        if (ForegroundSprite != null)
+        {
+            var fgGO  = new GameObject("Foreground");
+            fgGO.transform.SetParent(wrapper.transform, false);
+            var fgImg = fgGO.AddComponent<Image>();
+            fgImg.sprite         = ForegroundSprite;
+            fgImg.raycastTarget  = false;
+            fgImg.preserveAspect = false;
+            Stretch(fgGO);
+        }
+
         // Return wrapper (not panel) so flow.TrainingPanel.SetActive() shows/hides the full overlay
+        return wrapper;
+    }
+
+    // ── Settings Panel ────────────────────────────────────────────────────────
+
+    GameObject BuildSettingsPanel(Transform root)
+    {
+        var wrapper = MakeContainer(root, "SettingsPanel");
+        Stretch(wrapper);
+        wrapper.SetActive(false);
+
+        // Opaque dark background
+        {
+            var bgGO  = new GameObject("Background");
+            bgGO.transform.SetParent(wrapper.transform, false);
+            var bgImg = bgGO.AddComponent<Image>();
+            bgImg.color         = new Color(0.04f, 0.04f, 0.14f, 1f);
+            bgImg.raycastTarget = false;
+            Stretch(bgGO);
+        }
+
+        var panel = MakeContainer(wrapper.transform, "SettingsContent");
+        Stretch(panel);
+        var vl = panel.AddComponent<VerticalLayoutGroup>();
+        vl.childAlignment         = TextAnchor.UpperCenter;
+        vl.spacing                = 20;
+        vl.padding                = new RectOffset(80, 80, 50, 50);
+        vl.childForceExpandWidth  = true;
+        vl.childForceExpandHeight = false;
+
+        // Header
+        MakeText(panel.transform, "Header", "SETTINGS",
+            40, new Color(0.98f, 0.78f, 0.88f), TextAnchor.MiddleCenter, FontStyle.Bold,
+            prefH: 56, flexW: true);
+
+        MakeSeparator(panel.transform);
+
+        // ── Volume row ────────────────────────────────────────────────────────
+        var volRow = MakeContainer(panel.transform, "VolumeRow");
+        volRow.AddComponent<LayoutElement>().preferredHeight = 56;
+        var hl = volRow.AddComponent<HorizontalLayoutGroup>();
+        hl.childAlignment         = TextAnchor.MiddleLeft;
+        hl.spacing                = 28;
+        hl.padding                = new RectOffset(24, 24, 0, 0);
+        hl.childForceExpandWidth  = false;
+        hl.childForceExpandHeight = false;
+
+        MakeText(volRow.transform, "VolumeLabel", "MASTER VOLUME",
+            22, Color.white, TextAnchor.MiddleLeft,
+            prefW: 250, prefH: 36);
+
+        // Slider GO — Image gives it a RectTransform, acts as the track
+        var sliderGO = new GameObject("VolumeSlider");
+        sliderGO.transform.SetParent(volRow.transform, false);
+        var trackImg = sliderGO.AddComponent<Image>();
+        trackImg.color = new Color(0.22f, 0.22f, 0.32f);
+        var sliderLE = sliderGO.AddComponent<LayoutElement>();
+        sliderLE.preferredWidth  = 440;
+        sliderLE.preferredHeight = 36;
+
+        // Fill Area
+        var fillArea   = MakeContainer(sliderGO.transform, "Fill Area");
+        var fillAreaRT = (RectTransform)fillArea.transform;
+        fillAreaRT.anchorMin = new Vector2(0f, 0.2f);
+        fillAreaRT.anchorMax = new Vector2(1f, 0.8f);
+        fillAreaRT.offsetMin = new Vector2(4f, 0f);
+        fillAreaRT.offsetMax = new Vector2(-4f, 0f);
+
+        var fillGO  = new GameObject("Fill");
+        fillGO.transform.SetParent(fillArea.transform, false);
+        var fillImg = fillGO.AddComponent<Image>();
+        fillImg.color = new Color(0.92f, 0.55f, 0.72f);
+        var fillRT  = (RectTransform)fillGO.transform;
+        fillRT.anchorMin = Vector2.zero;
+        fillRT.anchorMax = Vector2.one;
+        fillRT.offsetMin = Vector2.zero;
+        fillRT.offsetMax = Vector2.zero;
+
+        // Handle Slide Area
+        var handleArea   = MakeContainer(sliderGO.transform, "Handle Slide Area");
+        var handleAreaRT = (RectTransform)handleArea.transform;
+        handleAreaRT.anchorMin = Vector2.zero;
+        handleAreaRT.anchorMax = Vector2.one;
+        handleAreaRT.offsetMin = new Vector2(8f, 0f);
+        handleAreaRT.offsetMax = new Vector2(-8f, 0f);
+
+        var handleGO  = new GameObject("Handle");
+        handleGO.transform.SetParent(handleArea.transform, false);
+        var handleImg = handleGO.AddComponent<Image>();
+        handleImg.color = Color.white;
+        var handleRT  = (RectTransform)handleGO.transform;
+        handleRT.anchorMin       = new Vector2(0f, 0.5f);
+        handleRT.anchorMax       = new Vector2(0f, 0.5f);
+        handleRT.pivot           = new Vector2(0.5f, 0.5f);
+        handleRT.sizeDelta       = new Vector2(28f, 28f);
+        handleRT.anchoredPosition = Vector2.zero;
+
+        // Wire Slider component
+        var slider = sliderGO.AddComponent<Slider>();
+        slider.fillRect     = fillRT;
+        slider.handleRect   = handleRT;
+        slider.targetGraphic = handleImg;
+        slider.direction    = Slider.Direction.LeftToRight;
+        slider.minValue     = 0f;
+        slider.maxValue     = 1f;
+        slider.value        = GameConfig.Instance != null ? GameConfig.Instance.masterVolume : 1f;
+        slider.onValueChanged.AddListener(v =>
+        {
+            if (GameConfig.Instance != null) GameConfig.Instance.SetMasterVolume(v);
+        });
+
+        MakeSeparator(panel.transform);
+
+        // Back button
+        var backBar = MakeContainer(panel.transform, "BackBar");
+        backBar.AddComponent<LayoutElement>().preferredHeight = 60;
+        var bhl = backBar.AddComponent<HorizontalLayoutGroup>();
+        bhl.childAlignment         = TextAnchor.MiddleCenter;
+        bhl.childForceExpandWidth  = false;
+        bhl.childForceExpandHeight = false;
+        MakeButton(backBar.transform, "BackBtn", "< MAIN MENU",
+            new Color(0.92f, 0.55f, 0.72f), 26, 280, 56,
+            () => GameFlowController.Instance?.ShowMainMenu(), FontStyle.Bold);
+
         return wrapper;
     }
 
@@ -649,7 +814,7 @@ public class SceneBootstrapper : MonoBehaviour
         brt2.offsetMax = Vector2.zero;
 
         GameObject headGO = null;
-        if (BlobHeadObjects != null && charIdx < BlobHeadObjects.Length)
+        if (BlobHeadObjects != null && charIdx < BlobHeadObjects.Length && BlobHeadObjects[charIdx] != null)
         {
             headGO = Instantiate(BlobHeadObjects[charIdx], blobGO.transform, false);
             var brt3 = headGO.GetComponent<RectTransform>();
@@ -667,7 +832,7 @@ public class SceneBootstrapper : MonoBehaviour
         blob.CharacterName   = CharNames[charIdx];
         blob.BlobColor       = color;
         blob.BlobImage  = bodyImg;
-        blob.FaceSwitcher = headGO.GetComponent<FaceSwitcher>();
+        blob.FaceSwitcher = headGO?.GetComponent<FaceSwitcher>();
         blob.HeadObj = headGO;
         blob.SwayAmount = 14f;
         blob.BobAmount  = 7f;
@@ -684,10 +849,12 @@ public class SceneBootstrapper : MonoBehaviour
         var go  = new GameObject($"NoteHead_{pitchIdx}");
         go.transform.SetParent(parent, false);
 
+        var faceNormal = new Color(0.82f, 0.82f, 0.82f, 0.75f);
+
         var img = go.AddComponent<Image>();
         img.sprite = RoundedRectSprite;
         img.type   = Image.Type.Sliced;
-        img.color  = new Color(0.82f, 0.82f, 0.82f);   // light gray background
+        img.color  = faceNormal;
         var le  = go.AddComponent<LayoutElement>();
         le.flexibleWidth   = 1;
         le.preferredHeight = FaceButtonHeight;   // no minHeight — freely resizable
@@ -716,7 +883,7 @@ public class SceneBootstrapper : MonoBehaviour
         presenter.CharacterIndex = charIdx;
         presenter.PitchIndex     = pitchIdx;
         presenter.ButtonImage    = img;
-        presenter.NormalColor    = new Color(0.82f, 0.82f, 0.82f);   // light gray when idle
+        presenter.NormalColor    = faceNormal;
         presenter.ActiveColor    = new Color(blobColor.r,          blobColor.g,          blobColor.b);
 
         var btn = go.AddComponent<Button>();
@@ -822,7 +989,8 @@ public class SceneBootstrapper : MonoBehaviour
     static GameObject MakeButton(Transform parent, string name, string label,
         Color bg, int fontSize, float prefW, float prefH,
         UnityEngine.Events.UnityAction action,
-        FontStyle style = FontStyle.Normal)
+        FontStyle style = FontStyle.Normal,
+        Color labelColor = default)
     {
         var go  = new GameObject(name);
         go.transform.SetParent(parent, false);
@@ -844,7 +1012,7 @@ public class SceneBootstrapper : MonoBehaviour
         lbl.fontSize  = fontSize;
         lbl.fontStyle = style;
         lbl.alignment = TextAnchor.MiddleCenter;
-        lbl.color     = Color.white;
+        lbl.color     = labelColor == default(Color) ? Color.white : labelColor;
         var lrt = lblGO.GetComponent<RectTransform>();
         lrt.anchorMin = Vector2.zero;
         lrt.anchorMax = Vector2.one;

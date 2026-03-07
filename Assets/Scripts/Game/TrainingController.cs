@@ -50,14 +50,8 @@ public class TrainingController : MonoBehaviour
     [Header("Stimulus grid — 17 Image cells built by SceneBootstrapper")]
     public UnityEngine.UI.Image[] TrainingGridCells = new UnityEngine.UI.Image[17];
 
-    // Normal (dim) background colours matching each character
-    static readonly Color[] CellNormal =
-    {
-        new Color(0.36f, 0.08f, 0.08f),  // Red   (indices 0-3)
-        new Color(0.07f, 0.28f, 0.10f),  // Green (indices 4-7)
-        new Color(0.08f, 0.15f, 0.36f),  // Blue  (indices 8-11)
-        new Color(0.33f, 0.29f, 0.03f),  // Yellow(indices 12-15)
-    };
+    // Normal (resting) colour — light gray, same as game face buttons
+    static readonly Color CellNormalColor = new Color(0.82f, 0.82f, 0.82f, 0.75f);
     static readonly Color CellPlayPause  = new Color(0.10f, 0.28f, 0.45f);
     static readonly Color CellTargetCol  = new Color(0f,    0.80f, 1f  );   // cyan  — FOCUS ON
     static readonly Color CellPredictCol = new Color(0.15f, 0.90f, 0.35f);  // green — predicted
@@ -379,6 +373,6 @@ public class TrainingController : MonoBehaviour
     {
         if (index < 0 || index >= 17 || TrainingGridCells[index] == null) return;
         if (index == 16) { TrainingGridCells[16].color = CellPlayPause; return; }
-        TrainingGridCells[index].color = CellNormal[index / 4];
+        TrainingGridCells[index].color = CellNormalColor;
     }
 }

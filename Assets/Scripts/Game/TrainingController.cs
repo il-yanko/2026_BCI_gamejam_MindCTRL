@@ -49,11 +49,10 @@ public class TrainingController : MonoBehaviour
     [Header("Stimulus grid — 16 Image cells built by SceneBootstrapper")]
     public UnityEngine.UI.Image[] TrainingGridCells = new UnityEngine.UI.Image[16];
 
-    // Normal (resting) colour — #76647f
-    static readonly Color CellNormalColor = new Color(0.463f, 0.392f, 0.498f, 0.75f);
-    static readonly Color CellPlayPause  = new Color(0.10f, 0.28f, 0.45f);
-    static readonly Color CellTargetCol  = new Color(0.965f, 0.318f, 0.408f);  // #f65168 — FOCUS ON
-    static readonly Color CellPredictCol = new Color(0.15f, 0.90f, 0.35f);  // green — predicted
+    static readonly Color CellNormalColor = new Color(0.463f, 0.392f, 0.498f, 1f);   // #76647f — background
+    static readonly Color CellFlashCol   = new Color(1f,     0.831f, 0.325f, 1f);   // #ffd453 — flash
+    static readonly Color CellTargetCol  = new Color(0.965f, 0.318f, 0.408f, 1f);   // #f65168 — focus
+    static readonly Color CellPredictCol = new Color(0.792f, 0.741f, 0.820f, 1f);   // #cabdd1 — selection
 
     // ── Runtime ───────────────────────────────────────────────────────────────
     private Coroutine _sequence;

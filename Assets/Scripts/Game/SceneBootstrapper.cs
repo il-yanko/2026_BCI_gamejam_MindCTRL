@@ -915,8 +915,10 @@ public class SceneBootstrapper : MonoBehaviour
         presenter.CharacterIndex = charIdx;
         presenter.PitchIndex     = pitchIdx;
         presenter.ButtonImage    = img;
-        presenter.NormalColor    = faceNormal;
-        presenter.ActiveColor    = new Color(blobColor.r,          blobColor.g,          blobColor.b);
+        presenter.NormalColor    = faceNormal;                                               // #76647f
+        presenter.ActiveColor    = new Color(0.792f, 0.741f, 0.820f, 1f);                 // #cabdd1
+        presenter.FlashColor     = new Color(1f,     0.831f, 0.325f, 1f);                 // #ffd453
+        presenter.TargetColor    = new Color(0.965f, 0.318f, 0.408f, 1f);                 // #f65168
 
         var btn = go.AddComponent<Button>();
         btn.targetGraphic = img;

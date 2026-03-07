@@ -17,6 +17,12 @@ public class GameConfig : MonoBehaviour
     public bool enableAudio = true;
     [Range(0f, 1f)] public float masterVolume = 1f;
 
+    [Header("Assistant Mode")]
+    [Tooltip("Auto-plays all songs in a loop after assistantLoopDelay seconds of inactivity")]
+    public bool  assistantMode      = false;
+    [Tooltip("Seconds of no BCI input before assistant auto-play kicks in")]
+    public float assistantLoopDelay = 15f;
+
     [Header("BCI Trial Parameters")]
     [Tooltip("Number of times each stimulus is flashed per classification")]
     public int flashesPerOption = 10;
@@ -36,7 +42,8 @@ public class GameConfig : MonoBehaviour
     public float GetMasterVolume()   => masterVolume;
     public int   GetFlashesPerOption() => flashesPerOption;
 
-    public void SetAudioEnabled(bool v) { enableAudio  = v; }
+    public void SetAssistantMode(bool v) { assistantMode = v; }
+    public void SetAudioEnabled(bool v)  { enableAudio  = v; }
     public void SetMasterVolume(float v)
     {
         masterVolume = Mathf.Clamp01(v);

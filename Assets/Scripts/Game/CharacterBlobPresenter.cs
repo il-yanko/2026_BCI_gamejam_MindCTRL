@@ -40,6 +40,10 @@ public class CharacterBlobPresenter : MonoBehaviour
     [Header("Music Notes")]
     public float NoteInterval = 0.55f;  // average seconds between spawned notes
 
+    [Header("Short Play (BCI selection preview)")]
+    [Tooltip("How many seconds to play after a BCI pitch selection before auto-stopping")]
+    public float ShortPlayDuration = 3f;
+
     // ── Runtime state ─────────────────────────────────────────────────────────
     public int  CurrentPitchIndex { get; private set; } = 1;  // start at neutral (level 2)
     public bool IsSinging         => _isSinging;
@@ -48,6 +52,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     private Coroutine _noteRoutine;
     private Coroutine _moveRoutine;
     private Coroutine _scaleRoutine;
+    private Coroutine _shortPlayRoutine;
     private Vector3   _restLocalPos;   // base + pitch height offset
     private float     _targetScaleY = 1f;
     private float     _headYOffset = 115f;
@@ -114,8 +119,24 @@ public class CharacterBlobPresenter : MonoBehaviour
         AudioSrc.PlayLoop();
     }
 
+    /// <summary>Plays voice for ShortPlayDuration seconds then auto-stops (BCI selection preview).</summary>
+    public void PlayVoiceShort()
+    {
+        PlayVoice();
+        if (_shortPlayRoutine != null) StopCoroutine(_shortPlayRoutine);
+        _shortPlayRoutine = StartCoroutine(StopAfterDelay(ShortPlayDuration));
+    }
+
+    private IEnumerator StopAfterDelay(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        StopVoice();
+        _shortPlayRoutine = null;
+    }
+
     public void PauseVoice()
     {
+        CancelShortPlay();
         AudioSrc?.Stop();
         _isSinging = false;
         FaceSwitcher.SetIsSinging(_isSinging);
@@ -125,11 +146,17 @@ public class CharacterBlobPresenter : MonoBehaviour
 
     public void StopVoice()
     {
+        CancelShortPlay();
         AudioSrc?.Stop();
         _isSinging = false;
         FaceSwitcher.SetIsSinging(_isSinging);
         StopSingAnim();
         StopNoteAnim();
+    }
+
+    private void CancelShortPlay()
+    {
+        if (_shortPlayRoutine != null) { StopCoroutine(_shortPlayRoutine); _shortPlayRoutine = null; }
     }
 
     // ── Animation ─────────────────────────────────────────────────────────────

@@ -1,95 +1,129 @@
 using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Plays a three-part segmented audio clip: start → middle (looped or once) → end.
+/// Attach alongside an AudioSource (one will be added automatically if absent).
+/// </summary>
 public class SegmentedAudioPlayer : MonoBehaviour
 {
     public AudioClip start, middle, end;
     public bool loop = false;
-    private AudioSource audioSource;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private AudioSource _audioSource;
+    private Coroutine   _playRoutine;
+    private Coroutine   _stopRoutine;
+
+    // ── Convenience properties ────────────────────────────────────────────────
+
+    public bool isPlaying => _audioSource != null && _audioSource.isPlaying;
+
+    public float volume
     {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = AddComponent<audioSource>();
-        }
+        get => _audioSource != null ? _audioSource.volume : 1f;
+        set { if (_audioSource != null) _audioSource.volume = value; }
     }
+
+    // ── Unity lifecycle ───────────────────────────────────────────────────────
+
+    void Awake()
+    {
+        _audioSource = GetComponent<AudioSource>();
+        if (_audioSource == null)
+            _audioSource = gameObject.AddComponent<AudioSource>();
+    }
+
+    // ── Public API ────────────────────────────────────────────────────────────
 
     public void Play()
     {
-        if (loop)
-        {
-            PlayLoop();
-        }
-        else
-        {
-            PlaySingle();
-        }
+        if (loop) PlayLoop();
+        else      PlaySingle();
     }
 
     public void PlaySingle()
     {
         loop = false;
-        StartCoroutine(PlayImpl());
+        RestartPlay();
     }
 
     public void PlayLoop()
     {
         loop = true;
-        StartCoroutine(PlayImpl());
+        RestartPlay();
+    }
+
+    public void Stop()
+    {
+        if (_playRoutine != null) { StopCoroutine(_playRoutine); _playRoutine = null; }
+        if (_stopRoutine != null) { StopCoroutine(_stopRoutine); _stopRoutine = null; }
+        _stopRoutine = StartCoroutine(StopImpl());
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private void RestartPlay()
+    {
+        if (_playRoutine != null) { StopCoroutine(_playRoutine); _playRoutine = null; }
+        if (_stopRoutine != null) { StopCoroutine(_stopRoutine); _stopRoutine = null; }
+        _playRoutine = StartCoroutine(PlayImpl());
     }
 
     private IEnumerator PlayImpl()
     {
         if (start != null)
         {
-            audioSource.generator = start;
-            audioSource.loop = false;
-            audioSource.Play();
-            yield return new WaitUntil(() => audioSource.isPlaying == false);
+            _audioSource.clip = start;
+            _audioSource.loop = false;
+            _audioSource.Play();
+            yield return new WaitUntil(() => !_audioSource.isPlaying);
         }
 
         if (middle != null)
         {
-            audioSource.generator = middle;
+            _audioSource.clip = middle;
             if (loop)
             {
-                audioSource.loop = true;
-                audioSource.Play();
+                _audioSource.loop = true;
+                _audioSource.Play();
             }
             else
             {
-                audioSource.Play();
-                yield return new WaitUntil(() => audioSource.isPlaying == false);
+                _audioSource.loop = false;
+                _audioSource.Play();
+                yield return new WaitUntil(() => !_audioSource.isPlaying);
 
                 if (end != null)
                 {
-                    audioSource.generator = end;
-                    audioSource.Play();
+                    _audioSource.clip = end;
+                    _audioSource.loop = false;
+                    _audioSource.Play();
                 }
             }
         }
-    }
 
-    public void Stop()
-    {
-        StartCoroutine(StopImpl());
+        _playRoutine = null;
     }
 
     private IEnumerator StopImpl()
     {
-        if (audioSource.isPlaying && audioSource.loop)
+        if (_audioSource.isPlaying && _audioSource.loop)
         {
-            audioSource.loop = false;
-            yield return new WaitUntil(() => audioSource.isPlaying == false);
-
-            if (end != null)
-            {
-                audioSource.generator = end;
-                audioSource.Play();
-            }
+            _audioSource.loop = false;
+            yield return new WaitUntil(() => !_audioSource.isPlaying);
         }
+        else
+        {
+            _audioSource.Stop();
+        }
+
+        if (end != null)
+        {
+            _audioSource.clip = end;
+            _audioSource.loop = false;
+            _audioSource.Play();
+        }
+
+        _stopRoutine = null;
     }
 }

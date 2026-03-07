@@ -41,7 +41,8 @@ public class GameFlowController : MonoBehaviour
 
     // ── Runtime state ─────────────────────────────────────────────────────────
     private readonly int[] _currentPitch = { -1, -1, -1, -1 };  // -1 = nothing selected yet
-    private bool _isPlaying;
+    private bool  _isPlaying;
+    private float _lastInteractionTime = float.MinValue;
 
     /// <summary>
     /// True while the training panel is active.
@@ -133,14 +134,40 @@ public class GameFlowController : MonoBehaviour
         if (pitchIndex < 0 || pitchIndex >= 4) return;
 
         _currentPitch[charIndex] = pitchIndex;
+        _lastInteractionTime = Time.time;
+
         var blob = Blobs[charIndex];
         blob?.SetCurrentPitch(pitchIndex);
-        // Only start singing when the blob is visible (panel active).
-        // Skips the PlayVoice call during StartNewGame() pitch resets, which
-        // run before GamePanel is shown and would crash the coroutine.
-        if (blob != null && !blob.IsSinging && blob.gameObject.activeInHierarchy)
-            blob.PlayVoice();
+
+        if (blob != null && blob.gameObject.activeInHierarchy)
+        {
+            if (_isPlaying)
+            {
+                // SING is active — switch note but keep playing continuously
+                if (!blob.IsSinging) blob.PlayVoice();
+            }
+            else
+            {
+                // BCI selection preview — play for ShortPlayDuration then auto-stop
+                blob.PlayVoiceShort();
+            }
+        }
+
         RefreshButtonsForCharacter(charIndex);
+    }
+
+    void Update()
+    {
+        if (_isPlaying) return;                       // already singing manually
+        if (GamePanel == null || !GamePanel.activeSelf) return;
+        if (GameConfig.Instance == null || !GameConfig.Instance.assistantMode) return;
+
+        float delay = GameConfig.Instance.assistantLoopDelay;
+        if (Time.time - _lastInteractionTime >= delay)
+        {
+            _lastInteractionTime = Time.time;  // reset so it doesn't re-trigger every frame
+            PlayGame();
+        }
     }
 
     public int GetCurrentPitch(int charIndex) =>

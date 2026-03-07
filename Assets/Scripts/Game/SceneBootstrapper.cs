@@ -707,6 +707,48 @@ public class SceneBootstrapper : MonoBehaviour
 
         MakeSeparator(panel.transform);
 
+        // ── Assistant Mode row ────────────────────────────────────────────────
+        var assistRow = MakeContainer(panel.transform, "AssistantRow");
+        assistRow.AddComponent<LayoutElement>().preferredHeight = 56;
+        var ahl = assistRow.AddComponent<HorizontalLayoutGroup>();
+        ahl.childAlignment         = TextAnchor.MiddleLeft;
+        ahl.spacing                = 28;
+        ahl.padding                = new RectOffset(24, 24, 0, 0);
+        ahl.childForceExpandWidth  = false;
+        ahl.childForceExpandHeight = false;
+
+        MakeText(assistRow.transform, "AssistLabel",
+            "ASSISTANT  (auto-plays after 15 s idle)",
+            22, Color.white, TextAnchor.MiddleLeft,
+            prefW: 420, prefH: 44);
+
+        bool initAssist = GameConfig.Instance != null && GameConfig.Instance.assistantMode;
+        var assistBtnGO  = new GameObject("AssistantToggle");
+        assistBtnGO.transform.SetParent(assistRow.transform, false);
+        var assistBg  = assistBtnGO.AddComponent<Image>();
+        assistBg.color = initAssist ? new Color(0.92f, 0.55f, 0.72f) : new Color(0.22f, 0.22f, 0.32f);
+        assistBtnGO.AddComponent<LayoutElement>().preferredWidth  = 100;
+        assistBtnGO.GetComponent<LayoutElement>().preferredHeight = 44;
+
+        var assistLblGO = MakeText(assistBtnGO.transform, "AssistBtnLbl",
+            initAssist ? "ON" : "OFF",
+            24, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold,
+            prefH: 44, flexW: true);
+        var assistLbl = assistLblGO.GetComponent<Text>();
+
+        var assistBtn = assistBtnGO.AddComponent<Button>();
+        assistBtn.targetGraphic = assistBg;
+        assistBtn.onClick.AddListener(() =>
+        {
+            if (GameConfig.Instance == null) return;
+            GameConfig.Instance.SetAssistantMode(!GameConfig.Instance.assistantMode);
+            bool on = GameConfig.Instance.assistantMode;
+            assistBg.color = on ? new Color(0.92f, 0.55f, 0.72f) : new Color(0.22f, 0.22f, 0.32f);
+            assistLbl.text = on ? "ON" : "OFF";
+        });
+
+        MakeSeparator(panel.transform);
+
         // Back button
         var backBar = MakeContainer(panel.transform, "BackBar");
         backBar.AddComponent<LayoutElement>().preferredHeight = 60;

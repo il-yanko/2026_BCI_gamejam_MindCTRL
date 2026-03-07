@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -64,6 +65,10 @@ public class SceneBootstrapper : MonoBehaviour
     // used by each NoteStackResizeHandle so dragging any handle resizes all four at once.
     private readonly List<LayoutElement> _noteStackElements = new List<LayoutElement>();
 
+    private Material _mainMenuMaterial;
+    private GameObject _mainMenuPanel;
+    private GameObject _curtainObject;
+
     // ── Character data ────────────────────────────────────────────────────────
     // Left-to-right order: Red, Green, Blue, Yellow
 
@@ -114,7 +119,7 @@ public class SceneBootstrapper : MonoBehaviour
             Stretch(bgGO);
         }
 
-        var mainMenu = BuildMainMenu(canvas.transform);
+        _mainMenuPanel = BuildMainMenu(canvas.transform);
 
         // GamePanel added first; TrainingPanel is a later sibling so it renders on top.
         BuildGamePanel(canvas.transform,
@@ -164,7 +169,7 @@ public class SceneBootstrapper : MonoBehaviour
         }
 
         // 4. Wire GameFlowController
-        flow.MainMenuPanel   = mainMenu;
+        flow.MainMenuPanel   = _mainMenuPanel;
         flow.GamePanel       = gamePanel;
         flow.TrainingPanel   = trainingPanel;
         flow.SettingsPanel   = settingsPanel;
@@ -225,6 +230,9 @@ public class SceneBootstrapper : MonoBehaviour
 
     GameObject BuildMainMenu(Transform root)
     {
+        _mainMenuMaterial = new Material(Shader.Find("UI/Default"));
+        _mainMenuMaterial.name = "MainMenuMaterial";
+
         var panel = new GameObject("MainMenu", typeof(RectTransform));
         panel.transform.SetParent(root, false);
         Stretch(panel);
@@ -241,6 +249,7 @@ public class SceneBootstrapper : MonoBehaviour
         arFitter.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
         arFitter.aspectRatio = 2;
         arFitter.transform.localPosition = new Vector2(0f, 125f);
+        _curtainObject = curtains;
 
         // Logo — constrained to 900 px wide, aspect-correct height
         var logo = new GameObject("Logo");
@@ -250,6 +259,7 @@ public class SceneBootstrapper : MonoBehaviour
         logoImg.raycastTarget  = false;
         if (LogoSprite != null)
             logoImg.sprite = LogoSprite;
+        logoImg.material = _mainMenuMaterial;
         var logoRT = logo.GetComponent<RectTransform>();
         logoRT.anchorMin        = new Vector2(0.5f, 0.5f);
         logoRT.anchorMax        = new Vector2(0.5f, 0.5f);
@@ -278,15 +288,15 @@ public class SceneBootstrapper : MonoBehaviour
 
         MakeButton(buttonPanel.transform, "NewGameBtn", "NEW GAME",
             btnBg, 34, 340, 76,
-            () => GameFlowController.Instance?.StartNewGame(), FontStyle.Bold, btnText);
+            () => StartCoroutine(StartGameAnimation()), FontStyle.Bold, btnText, _mainMenuMaterial);
 
         MakeButton(buttonPanel.transform, "TrainingBtn", "TRAINING",
             btnBg, 34, 340, 76,
-            () => GameFlowController.Instance?.StartTraining(), FontStyle.Bold, btnText);
+            () => GameFlowController.Instance?.StartTraining(), FontStyle.Bold, btnText, _mainMenuMaterial);
 
         MakeButton(buttonPanel.transform, "SettingsBtn", "SETTINGS",
             btnBg, 34, 340, 76,
-            () => GameFlowController.Instance?.ShowSettings(), FontStyle.Bold, btnText);
+            () => GameFlowController.Instance?.ShowSettings(), FontStyle.Bold, btnText, _mainMenuMaterial);
 
         return panel;
     }
@@ -901,6 +911,40 @@ public class SceneBootstrapper : MonoBehaviour
         return presenter;
     }
 
+    private IEnumerator StartGameAnimation()
+    {
+        var mainColor = _mainMenuMaterial.color;
+        float duration = 1.5f;
+        float elapsed  = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            _mainMenuMaterial.color = new Color(mainColor.r, mainColor.g, mainColor.b, 1-Mathf.Log10(Mathf.Lerp(1f, 10f, t)));
+            yield return null;
+        }
+        _mainMenuMaterial.color = new Color(mainColor.r, mainColor.g, mainColor.b, 0);
+
+        var startPos = _curtainObject.transform.localPosition;
+        var finalPos = new Vector3(0f, 1100f, 0f);
+        duration = 3f;
+        elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            _curtainObject.transform.localPosition = Vector2.Lerp(startPos, finalPos, t);//new Color(mainColor.r, mainColor.g, mainColor.b, 1-Mathf.Log10(Mathf.Lerp(1f, 10f, t)));
+            print($"curtain: {_curtainObject.transform.localPosition}");
+            yield return null;
+        }
+        _curtainObject.SetActive(false);
+        _curtainObject.transform.localPosition = startPos;
+
+        _mainMenuPanel.SetActive(false);
+        _mainMenuMaterial.color = new Color(mainColor.r, mainColor.g, mainColor.b, 1);
+        GameFlowController.Instance?.StartNewGame();
+    }
+
     // ── UI helper methods ─────────────────────────────────────────────────────
 
     static GameObject MakePanel(Transform parent, string name, Color color)
@@ -990,7 +1034,7 @@ public class SceneBootstrapper : MonoBehaviour
         Color bg, int fontSize, float prefW, float prefH,
         UnityEngine.Events.UnityAction action,
         FontStyle style = FontStyle.Normal,
-        Color labelColor = default)
+        Color labelColor = default, Material material = null)
     {
         var go  = new GameObject(name);
         go.transform.SetParent(parent, false);
@@ -999,6 +1043,7 @@ public class SceneBootstrapper : MonoBehaviour
         img.sprite = RoundedRectSprite;
         img.type   = Image.Type.Sliced;
         img.color  = bg;
+        img.material = material;
 
         var btn = go.AddComponent<Button>();
         btn.targetGraphic = img;
@@ -1013,6 +1058,7 @@ public class SceneBootstrapper : MonoBehaviour
         lbl.fontStyle = style;
         lbl.alignment = TextAnchor.MiddleCenter;
         lbl.color     = labelColor == default(Color) ? Color.white : labelColor;
+        lbl.material  = material;
         var lrt = lblGO.GetComponent<RectTransform>();
         lrt.anchorMin = Vector2.zero;
         lrt.anchorMax = Vector2.one;

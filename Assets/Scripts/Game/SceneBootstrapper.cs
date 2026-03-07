@@ -342,11 +342,6 @@ public class SceneBootstrapper : MonoBehaviour
         vl.childForceExpandWidth  = true;
         vl.childForceExpandHeight = false;
 
-        // Header
-        MakeText(panel.transform, "Header", "OPERA  OF  BLOBS",
-            38, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold,
-            prefH: 44, flexW: true);
-
         // Blob row
         var rowGO = MakeContainer(panel.transform, "BlobRow");
 

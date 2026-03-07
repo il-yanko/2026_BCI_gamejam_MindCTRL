@@ -606,7 +606,7 @@ public class SceneBootstrapper : MonoBehaviour
         var brt = (RectTransform)blobGO.transform;
         brt.anchorMin = new Vector2(0.5f, 0.5f);
         brt.anchorMax = new Vector2(0.5f, 0.5f);
-        brt.pivot     = new Vector2(0.5f, 0.5f);
+        brt.pivot     = new Vector2(0.5f, 0f);
         brt.offsetMin = Vector2.zero;
         brt.offsetMax = Vector2.zero;
         var arf = blobGO.AddComponent<AspectRatioFitter>();
@@ -620,11 +620,14 @@ public class SceneBootstrapper : MonoBehaviour
         bodyImg.color          = Color.white;
         bodyImg.preserveAspect = true;
         bodyImg.raycastTarget  = false;
+        bodyImg.type = Image.Type.Sliced;
+        //bodyImg.sprite.pixelsPerUnit = 150;
         if (BlobBodySprites != null && charIdx < BlobBodySprites.Length)
             bodyImg.sprite = BlobBodySprites[charIdx];
         var brt2 = bodyGO.GetComponent<RectTransform>();
-        brt2.anchorMin = Vector2.zero;
-        brt2.anchorMax = Vector2.one;
+        brt2.anchorMin = new Vector2(0f, 0f);
+        brt2.anchorMax = new Vector2(1f, 0f);
+        brt2.pivot = new Vector2(0.5f, 0f);
         brt2.offsetMin = Vector2.zero;
         brt2.offsetMax = Vector2.zero;
 

@@ -38,7 +38,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     public float PitchHeightStep = 25f;  // px the blob rises per pitch level
 
     [Header("Pitch Scale — blob stretches taller for higher pitch")]
-    public float[] PitchScaleY = { 0.80f, 1.00f, 1.20f, 1.45f };  // Calm → Yelling
+    public float[] PitchScaleY = { 400f, 500f, 600f, 750f };  // Calm → Yelling
 
     [Header("Singing Animation")]
     public float SwaySpeed  = 2.5f;
@@ -59,6 +59,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     private Vector3   _baseLocalPos;   // spawn position, unaffected by pitch
     private Vector3   _restLocalPos;   // base + pitch height offset
     private float     _targetScaleY = 1f;
+    private RectTransform _blobImageTransform => ((RectTransform)BlobImage.transform);
 
     static readonly string[] NoteGlyphs = { "♩", "♪", "♫", "♬" };
 
@@ -71,10 +72,11 @@ public class CharacterBlobPresenter : MonoBehaviour
 
         _baseLocalPos = transform.localPosition;
         _restLocalPos = _baseLocalPos;
+        print($"BasePos: {_baseLocalPos}");
 
         // Snap to starting pitch scale immediately (no coroutine needed at Awake time)
         _targetScaleY = ScaleForPitch(CurrentPitchIndex);
-        transform.localScale = new Vector3(1f, _targetScaleY, 1f);
+        _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
 
         // Show starting face
         ApplyFaceSprite(CurrentPitchIndex);
@@ -99,8 +101,8 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         // Animation always starts regardless of audio availability.
         _isSinging = true;
-        if (_singRoutine == null && gameObject.activeInHierarchy)
-            _singRoutine = StartCoroutine(SingAnimation());
+        /*if (_singRoutine == null && gameObject.activeInHierarchy)
+            _singRoutine = StartCoroutine(SingAnimation());*/
         if (_noteRoutine == null && gameObject.activeInHierarchy)
             _noteRoutine = StartCoroutine(NoteLoop());
 
@@ -159,27 +161,27 @@ public class CharacterBlobPresenter : MonoBehaviour
 
     private float ScaleForPitch(int index) =>
         (PitchScaleY != null && index >= 0 && index < PitchScaleY.Length)
-            ? PitchScaleY[index] : 1f;
+            ? PitchScaleY[index] : PitchScaleY[0];
 
     private void UpdatePitchScale()
     {
         _targetScaleY = ScaleForPitch(CurrentPitchIndex);
         if (_scaleRoutine != null) StopCoroutine(_scaleRoutine);
         if (!gameObject.activeInHierarchy)
-            transform.localScale = new Vector3(1f, _targetScaleY, 1f);
+            _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
         else
             _scaleRoutine = StartCoroutine(ScaleToPitch());
     }
 
     private IEnumerator ScaleToPitch()
     {
-        while (Mathf.Abs(transform.localScale.y - _targetScaleY) > 0.005f)
+        while (Mathf.Abs(_blobImageTransform.sizeDelta.y - _targetScaleY) > 0.005f)
         {
-            float newY = Mathf.Lerp(transform.localScale.y, _targetScaleY, Time.deltaTime * 5f);
-            transform.localScale = new Vector3(1f, newY, 1f);
+            float newY = Mathf.Lerp(_blobImageTransform.sizeDelta.y, _targetScaleY, Time.deltaTime * 5f);
+            _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, newY);
             yield return null;
         }
-        transform.localScale = new Vector3(1f, _targetScaleY, 1f);
+        _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
         _scaleRoutine = null;
     }
 
@@ -188,15 +190,15 @@ public class CharacterBlobPresenter : MonoBehaviour
     private void UpdateRestPos()
     {
         // Higher pitch → higher on screen. Centre the range around 0.
-        float yOff    = (CurrentPitchIndex - 1.5f) * PitchHeightStep;
-        _restLocalPos = _baseLocalPos + new Vector3(0f, yOff, 0f);
+        //float yOff    = (CurrentPitchIndex - 1.5f) * PitchHeightStep;
+        //_restLocalPos = _baseLocalPos + new Vector3(0f, yOff, 0f);
 
         if (_isSinging) return;  // SingAnimation reads _restLocalPos each frame — handled
 
         // Snap immediately if the GO is inactive (can't start coroutines while hidden)
         if (!gameObject.activeInHierarchy)
         {
-            transform.localPosition = _restLocalPos;
+            //transform.localPosition = _restLocalPos;
             return;
         }
 
@@ -209,11 +211,11 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         while ((_restLocalPos - transform.localPosition).sqrMagnitude > 0.25f)
         {
-            transform.localPosition = Vector3.Lerp(
-                transform.localPosition, _restLocalPos, Time.deltaTime * 8f);
+            //transform.localPosition = Vector3.Lerp(
+                //transform.localPosition, _restLocalPos, Time.deltaTime * 8f);
             yield return null;
         }
-        transform.localPosition = _restLocalPos;
+        //transform.localPosition = _restLocalPos;
         _moveRoutine = null;
     }
 

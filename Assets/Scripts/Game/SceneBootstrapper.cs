@@ -823,17 +823,6 @@ public class SceneBootstrapper : MonoBehaviour
         nsLe.ignoreLayout   = true;  // excluded from mainArea — blob is unaffected
         _noteStackElements.Add(nsLe);
 
-        var handleGO = new GameObject("ResizeHandle");
-        handleGO.transform.SetParent(noteStack.transform, false);
-        handleGO.AddComponent<Image>();
-        handleGO.AddComponent<LayoutElement>().ignoreLayout = true;
-        var handleRT = handleGO.GetComponent<RectTransform>();
-        handleRT.anchorMin = new Vector2(1f, 0f);
-        handleRT.anchorMax = Vector2.one;
-        handleRT.offsetMin = new Vector2(-8f, 0f);
-        handleRT.offsetMax = Vector2.zero;
-        handleGO.AddComponent<NoteStackResizeHandle>().NoteStacks = _noteStackElements;
-
         pitchBtns = new PitchButtonPresenter[4];
         for (int p = 3; p >= 0; p--)
             pitchBtns[p] = BuildNoteHead(noteStack.transform, charIdx, p);

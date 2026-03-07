@@ -6,9 +6,9 @@ using UnityEngine.UI;
 using BCIEssentials.Stimulus.Presentation;
 
 /// <summary>
-/// Orchestrates P300 training and accuracy evaluation for all 17 stimuli.
+/// Orchestrates P300 training and accuracy evaluation for all 16 stimuli.
 ///
-/// Training:   cycles through all 17 stimuli in random order, N times each,
+/// Training:   cycles through all 16 stimuli in random order, N times each,
 ///             calling StartTrainingTrial() so the Python backend accumulates
 ///             labelled epochs and trains the classifier.
 ///
@@ -29,14 +29,14 @@ public class TrainingController : MonoBehaviour
     public Button StopBtn;
 
     [Header("Settings")]
-    [Tooltip("Full passes through all 17 stimuli during training")]
+    [Tooltip("Full passes through all 16 stimuli during training")]
     public int   TrainingReps  = 3;
     [Tooltip("Number of random stimuli used during evaluation")]
-    public int   EvalTrials    = 17;
+    public int   EvalTrials    = 16;
     [Tooltip("Seconds to display the cue before each trial starts")]
     public float CueDuration   = 2.5f;
 
-    // ── Stimulus display names (indices 0-16) ─────────────────────────────────
+    // ── Stimulus display names (indices 0-15) ─────────────────────────────────
     // Order matches SceneBootstrapper left-to-right: Red(0) Green(1) Blue(2) Yellow(3)
     static readonly string[] Names =
     {
@@ -44,16 +44,15 @@ public class TrainingController : MonoBehaviour
         "Green  Calm",    "Green  Happy",    "Green  Excited",    "Green  Yelling!",
         "Blue   Calm",    "Blue   Happy",    "Blue   Excited",    "Blue   Yelling!",
         "Yellow Calm",    "Yellow Happy",    "Yellow Excited",    "Yellow Yelling!",
-        "SING / PAUSE",
     };
 
-    [Header("Stimulus grid — 17 Image cells built by SceneBootstrapper")]
-    public UnityEngine.UI.Image[] TrainingGridCells = new UnityEngine.UI.Image[17];
+    [Header("Stimulus grid — 16 Image cells built by SceneBootstrapper")]
+    public UnityEngine.UI.Image[] TrainingGridCells = new UnityEngine.UI.Image[16];
 
-    // Normal (resting) colour — light gray, same as game face buttons
-    static readonly Color CellNormalColor = new Color(0.82f, 0.82f, 0.82f, 0.75f);
+    // Normal (resting) colour — #76647f
+    static readonly Color CellNormalColor = new Color(0.463f, 0.392f, 0.498f, 0.75f);
     static readonly Color CellPlayPause  = new Color(0.10f, 0.28f, 0.45f);
-    static readonly Color CellTargetCol  = new Color(0f,    0.80f, 1f  );   // cyan  — FOCUS ON
+    static readonly Color CellTargetCol  = new Color(0.965f, 0.318f, 0.408f);  // #f65168 — FOCUS ON
     static readonly Color CellPredictCol = new Color(0.15f, 0.90f, 0.35f);  // green — predicted
 
     // ── Runtime ───────────────────────────────────────────────────────────────
@@ -128,12 +127,12 @@ public class TrainingController : MonoBehaviour
         bci.StopContinuousTrials();
         SetButtons(trainActive: false, evalActive: false, stopActive: true);
 
-        int total = TrainingReps * 17;
+        int total = TrainingReps * 16;
         int done  = 0;
 
         for (int rep = 0; rep < TrainingReps; rep++)
         {
-            var order = Enumerable.Range(0, 17)
+            var order = Enumerable.Range(0, 16)
                                   .OrderBy(_ => Random.value)
                                   .ToList();
             foreach (int target in order)
@@ -217,7 +216,7 @@ public class TrainingController : MonoBehaviour
         bool mockMode = GameConfig.Instance != null && GameConfig.Instance.useMockBCI;
 
         int correct = 0;
-        var indices = Enumerable.Range(0, 17)
+        var indices = Enumerable.Range(0, 16)
                                 .OrderBy(_ => Random.value)
                                 .Take(EvalTrials)
                                 .ToList();
@@ -371,8 +370,7 @@ public class TrainingController : MonoBehaviour
 
     void ResetCell(int index)
     {
-        if (index < 0 || index >= 17 || TrainingGridCells[index] == null) return;
-        if (index == 16) { TrainingGridCells[16].color = CellPlayPause; return; }
+        if (index < 0 || index >= 16 || TrainingGridCells[index] == null) return;
         TrainingGridCells[index].color = CellNormalColor;
     }
 }

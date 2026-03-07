@@ -43,6 +43,9 @@ public class SceneBootstrapper : MonoBehaviour
     [Header("Art — Pitch Face Sprites (0 = Calm → 3 = Yelling)")]
     public Sprite[] FaceSprites = new Sprite[4];
 
+    [Header("Art — Training Dummy Sprites")]
+    public Sprite TrainingDummyBodyFace;
+
     [Header("Layout — Face Sprite Buttons")]
     [Tooltip("Width of the face-sprite column (also controls visible sprite size)")]
     public float FaceStackWidth    = 80f;
@@ -394,10 +397,9 @@ public class SceneBootstrapper : MonoBehaviour
     {
         tc = FindAnyObjectByType<TrainingController>();
 
-        var cellNormal       = new Color(0.82f, 0.82f, 0.82f, 0.75f);  // same as game face buttons
-        var cellPlayPauseCol = new Color(0.10f, 0.28f, 0.45f);
+        var cellNormal = new Color(0.463f, 0.392f, 0.498f, 0.75f);  // #76647f
 
-        var gridCells = new UnityEngine.UI.Image[17];
+        var gridCells = new UnityEngine.UI.Image[16];
 
         // ── Root wrapper — full-screen; flow.TrainingPanel points here ─────────
         var wrapper = MakeContainer(root, "TrainingPanel");
@@ -420,7 +422,7 @@ public class SceneBootstrapper : MonoBehaviour
         var vl = panel.AddComponent<VerticalLayoutGroup>();
         vl.childAlignment         = TextAnchor.UpperCenter;
         vl.spacing                = 8;
-        vl.padding                = new RectOffset(20, 20, 14, 14);
+        vl.padding                = new RectOffset(20, 20, 14, 120);
         vl.childForceExpandWidth  = true;
         vl.childForceExpandHeight = false;
 
@@ -430,17 +432,6 @@ public class SceneBootstrapper : MonoBehaviour
             prefH: 46, flexW: true);
 
         MakeSeparator(panel.transform);
-
-        // Cue box
-        var cueBox = MakePanel(panel.transform, "CueBox", new Color(0.10f, 0.10f, 0.22f));
-        cueBox.AddComponent<LayoutElement>().preferredHeight = 80;
-        var cueText = MakeText(cueBox.transform, "CueLabel",
-            "Press a button to begin.",
-            26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold).GetComponent<Text>();
-        var cueRT = cueText.GetComponent<RectTransform>();
-        cueRT.anchorMin = Vector2.zero;  cueRT.anchorMax = Vector2.one;
-        cueRT.offsetMin = new Vector2(12, 6);  cueRT.offsetMax = new Vector2(-12, -6);
-        if (tc != null) tc.CueLabel = cueText;
 
         // ── Stimulus grid (expands to fill remaining vertical space) ───────────
         var gridSection = MakeContainer(panel.transform, "GridSection");
@@ -457,8 +448,8 @@ public class SceneBootstrapper : MonoBehaviour
         var cgHl = charGrid.AddComponent<HorizontalLayoutGroup>();
         cgHl.childAlignment         = TextAnchor.MiddleCenter;
         cgHl.spacing                = 32;
-        cgHl.childForceExpandWidth  = true;
-        cgHl.childForceExpandHeight = false;
+        cgHl.childForceExpandWidth  = false;
+        cgHl.childForceExpandHeight = true;
 
         for (int c = 0; c < 4; c++)
         {
@@ -469,11 +460,6 @@ public class SceneBootstrapper : MonoBehaviour
             colVl.spacing                = 28;
             colVl.childForceExpandWidth  = false;
             colVl.childForceExpandHeight = false;
-
-            // Character name header
-            MakeText(col.transform, "CharName", CharNames[c],
-                16, BlobColors[c], TextAnchor.MiddleCenter, FontStyle.Bold,
-                prefH: 24, flexW: true);
 
             // 4 pitch cells — top = Yelling (p=3), bottom = Calm (p=0), matching game panel order
             for (int p = 3; p >= 0; p--)
@@ -513,23 +499,20 @@ public class SceneBootstrapper : MonoBehaviour
 
                 gridCells[flatIdx] = cellImg;
             }
-        }
 
-        // Play/Pause cell — full width, index 16
-        var ppGO  = new GameObject("Cell_16");
-        ppGO.transform.SetParent(gridSection.transform, false);
-        var ppImg = ppGO.AddComponent<Image>();
-        ppImg.color         = cellPlayPauseCol;
-        ppImg.raycastTarget = false;
-        var ppLE = ppGO.AddComponent<LayoutElement>();
-        ppLE.preferredHeight = 44;
-        ppLE.flexibleWidth   = 1;
-        var ppLbl = MakeText(ppGO.transform, "Lbl", "SING  /  PAUSE",
-            17, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-        var ppLrt = ppLbl.GetComponent<RectTransform>();
-        ppLrt.anchorMin = Vector2.zero;  ppLrt.anchorMax = Vector2.one;
-        ppLrt.offsetMin = Vector2.zero;  ppLrt.offsetMax = Vector2.zero;
-        gridCells[16] = ppImg;
+            // TD_Body_Face divider after each column (4 total)
+            {
+                var divGO  = new GameObject($"BodyDivider_{c}");
+                divGO.transform.SetParent(charGrid.transform, false);
+                var divImg = divGO.AddComponent<Image>();
+                divImg.sprite         = TrainingDummyBodyFace;
+                divImg.preserveAspect = true;
+                divImg.raycastTarget  = false;
+                var divLE = divGO.AddComponent<LayoutElement>();
+                divLE.flexibleWidth  = 1f;
+                divLE.flexibleHeight = 1f;
+            }
+        }
 
         // Wire stimulus grid cells to TrainingController
         if (tc != null) tc.TrainingGridCells = gridCells;

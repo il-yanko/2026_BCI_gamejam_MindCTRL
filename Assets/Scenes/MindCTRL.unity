@@ -255,10 +255,15 @@ MonoBehaviour:
   BackgroundSprite: {fileID: 21300000, guid: aabb0001cc111111aabbcc1234abcdef, type: 3}
   ForegroundSprite: {fileID: 21300000, guid: e76e8dfeca2c74a15aedbcd45de0cac8, type: 3}
   BlobBodySprites:
-  - {fileID: 21300000, guid: aabb0008cc111111aabbcc1234abcdef, type: 3}
-  - {fileID: 21300000, guid: aabb0009cc111111aabbcc1234abcdef, type: 3}
-  - {fileID: 21300000, guid: aabb0010cc111111aabbcc1234abcdef, type: 3}
-  - {fileID: 21300000, guid: aabb0007cc111111aabbcc1234abcdef, type: 3}
+  - {fileID: 21300000, guid: 0ae3a2a953f029070b9a06a76d93bb3f, type: 3}
+  - {fileID: 21300000, guid: 68e05137ae13de1b9990481e59b2119b, type: 3}
+  - {fileID: 21300000, guid: bbe547c086e08c57997ef6cb9929a8b2, type: 3}
+  - {fileID: 21300000, guid: 8e9fc0ff88e03bcdaadb4994009b4f15, type: 3}
+  BlobHeadObjects:
+  - {fileID: 7800603900488647500, guid: 4bfb50a7c8b9d8230ac6a9528a98cccb, type: 3}
+  - {fileID: 7800603900488647500, guid: cba8e92c8a1ca4f81b19c1e663077626, type: 3}
+  - {fileID: 7800603900488647500, guid: b497d22934af17ac08968374a9df4d11, type: 3}
+  - {fileID: 7800603900488647500, guid: 2834ededd5661840ca7b3d719453eed8, type: 3}
   FaceSprites:
   - {fileID: 21300000, guid: 39ba85785ac0844ab892d12c7632ef1b, type: 3}
   - {fileID: 21300000, guid: 70434bc74db5c40b5bb7934a2673bbab, type: 3}

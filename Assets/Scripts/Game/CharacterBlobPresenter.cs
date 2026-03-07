@@ -17,17 +17,9 @@ public class CharacterBlobPresenter : MonoBehaviour
 
     [Header("Blob Visuals")]
     public Image BlobImage;
+    public GameObject HeadObj;
     public Color BlobColor = Color.white;
-
-    [Header("Face Visuals")]
-    public Image     FaceImage;
-    public Sprite[]  FaceSprites = new Sprite[4];  // 0=Calm 1=Happy 2=Excited 3=Yelling
-    public string[]  FaceNames   = { "Calm", "Happy", "Excited", "Yelling" };
-
-    [Header("Face Label")]
-    public Text     FaceLabel;
-    /// <summary>ASCII face expressions shown on the big blob — should match the note-head buttons.</summary>
-    public string[] FaceExpressions = { "- -\n ~", "^ ^\n u", "o o\n D", "O O\n !" };
+    public FaceSwitcher FaceSwitcher;
 
     [Header("Audio")]
     public AudioSource AudioSrc;
@@ -58,6 +50,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     private Coroutine _scaleRoutine;
     private Vector3   _restLocalPos;   // base + pitch height offset
     private float     _targetScaleY = 1f;
+    private float     _headYOffset = 115f;
     private RectTransform _blobImageTransform => ((RectTransform)BlobImage.transform);
 
     static readonly string[] NoteGlyphs = { "♩", "♪", "♫", "♬" };
@@ -74,9 +67,10 @@ public class CharacterBlobPresenter : MonoBehaviour
         // Snap to starting pitch scale immediately (no coroutine needed at Awake time)
         _targetScaleY = ScaleForPitch(CurrentPitchIndex);
         _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
+        HeadObj.transform.localPosition = new Vector3(0f, _targetScaleY - _headYOffset, 0f);
 
-        // Show starting face
-        ApplyFaceSprite(CurrentPitchIndex);
+        FaceSwitcher.SetPitchLevel(CurrentPitchIndex);
+        FaceSwitcher.SetIsSinging(_isSinging);
     }
 
     // ── Pitch & visuals ────────────────────────────────────────────────────────
@@ -85,9 +79,8 @@ public class CharacterBlobPresenter : MonoBehaviour
     public void SetCurrentPitch(int pitchIndex)
     {
         CurrentPitchIndex = Mathf.Clamp(pitchIndex, 0, 3);
-        ApplyFaceSprite(CurrentPitchIndex);
-        ApplyFaceText(CurrentPitchIndex);
         UpdatePitchScale();
+        FaceSwitcher.SetPitchLevel(CurrentPitchIndex);
         if (_isSinging) SwitchVoice();
     }
 
@@ -97,6 +90,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         // Animation always starts regardless of audio availability.
         _isSinging = true;
+        FaceSwitcher.SetIsSinging(_isSinging);
         if (_singRoutine == null && gameObject.activeInHierarchy)
             _singRoutine = StartCoroutine(SingAnimation());
         if (_noteRoutine == null && gameObject.activeInHierarchy)
@@ -117,6 +111,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         AudioSrc?.Pause();
         _isSinging = false;
+        FaceSwitcher.SetIsSinging(_isSinging);
         StopSingAnim();
         StopNoteAnim();
     }
@@ -125,6 +120,7 @@ public class CharacterBlobPresenter : MonoBehaviour
     {
         AudioSrc?.Stop();
         _isSinging = false;
+        FaceSwitcher.SetIsSinging(_isSinging);
         StopSingAnim();
         StopNoteAnim();
     }
@@ -165,9 +161,14 @@ public class CharacterBlobPresenter : MonoBehaviour
         _targetScaleY = ScaleForPitch(CurrentPitchIndex);
         if (_scaleRoutine != null) StopCoroutine(_scaleRoutine);
         if (!gameObject.activeInHierarchy)
+        {
             _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
+            HeadObj.transform.localPosition = new Vector3(0f, _targetScaleY - _headYOffset, 0f);
+        }
         else
+        {
             _scaleRoutine = StartCoroutine(ScaleToPitch());
+        }
     }
 
     private IEnumerator ScaleToPitch()
@@ -176,9 +177,11 @@ public class CharacterBlobPresenter : MonoBehaviour
         {
             float newY = Mathf.Lerp(_blobImageTransform.sizeDelta.y, _targetScaleY, Time.deltaTime * 5f);
             _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, newY);
+            HeadObj.transform.localPosition = new Vector3(0f, newY - _headYOffset, 0f);
             yield return null;
         }
         _blobImageTransform.sizeDelta = new Vector2(_blobImageTransform.sizeDelta.x, _targetScaleY);
+        HeadObj.transform.localPosition = new Vector3(0f, _targetScaleY - _headYOffset, 0f);
         _scaleRoutine = null;
     }
 
@@ -246,18 +249,6 @@ public class CharacterBlobPresenter : MonoBehaviour
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
-
-    private void ApplyFaceSprite(int index)
-    {
-        if (FaceImage == null || FaceSprites == null || index >= FaceSprites.Length) return;
-        FaceImage.sprite = FaceSprites[index];
-    }
-
-    private void ApplyFaceText(int index)
-    {
-        if (FaceLabel == null || FaceExpressions == null || index >= FaceExpressions.Length) return;
-        FaceLabel.text = FaceExpressions[index];
-    }
 
     private void SwitchVoice()
     {

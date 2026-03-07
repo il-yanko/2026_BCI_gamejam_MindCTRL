@@ -35,6 +35,7 @@ public class SceneBootstrapper : MonoBehaviour
 
     [Header("Art — Character Body Sprites (Red, Green, Blue, Yellow)")]
     public Sprite[] BlobBodySprites = new Sprite[4];
+    public GameObject[] BlobHeadObjects = new GameObject[4];
 
     [Header("Art — Pitch Face Sprites (0 = Calm → 3 = Yelling)")]
     public Sprite[] FaceSprites = new Sprite[4];
@@ -631,12 +632,27 @@ public class SceneBootstrapper : MonoBehaviour
         brt2.offsetMin = Vector2.zero;
         brt2.offsetMax = Vector2.zero;
 
+        GameObject headGO = null;
+        if (BlobHeadObjects != null && charIdx < BlobHeadObjects.Length)
+        {
+            headGO = Instantiate(BlobHeadObjects[charIdx], blobGO.transform, false);
+            var brt3 = headGO.GetComponent<RectTransform>();
+            brt3.anchorMin = new Vector2(0f, 0f);
+            brt3.anchorMax = new Vector2(1f, 0f);
+            brt3.pivot = new Vector2(0.5f, 1f);
+            brt3.offsetMin = Vector2.zero;
+            brt3.offsetMax = Vector2.zero;
+            brt3.localScale = new Vector3(0.9f, 0.9f, 1f);
+        }
+
         blobGO.AddComponent<AudioSource>();   // must exist before CharacterBlobPresenter.Awake()
         var blob = blobGO.AddComponent<CharacterBlobPresenter>();
         blob.CharacterIndex  = charIdx;
         blob.CharacterName   = CharNames[charIdx];
         blob.BlobColor       = color;
         blob.BlobImage  = bodyImg;
+        blob.FaceSwitcher = headGO.GetComponent<FaceSwitcher>();
+        blob.HeadObj = headGO;
         blob.SwayAmount = 14f;
         blob.BobAmount  = 7f;
 
